@@ -35,7 +35,7 @@ const P5WrapperComponent: FC<P5WrapperProps> = ({
   }, [props, instance])
 
   const wrapper = useCallback(node => {
-    if (node.current === null) return
+    if (!node || node.current === null) return
     const canvas = createCanvas(sketch, node.current)
     setInstance(canvas)
   }, [sketch])

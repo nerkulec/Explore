@@ -1,21 +1,25 @@
 import { CheetahGame } from "../evo/Game"
 import { P5Instance } from "./P5Wrapper"
 
-const sketch = (p5: P5Instance) => {
-  let cheetahGame = new CheetahGame(p5)
+const sketch = (p: P5Instance) => {
+  let cheetahGame = new CheetahGame(p)
 
-  p5.setup = () => {
-    p5.createCanvas(1080, 720, p5.WEBGL)
+  p.setup = () => {
+    p.createCanvas(1080, 720)
     cheetahGame.reset()
   }
 
-  p5.updateWithProps = props => {
+  p.updateWithProps = props => {
     
   }
 
-  p5.draw = () => {
+  p.draw = () => {
+    // p.noStroke()
     cheetahGame.update()
+    p.background(255)
+    p.translate(p.width/2, p.height/2)
     cheetahGame.draw()
+    p.noLoop()
   }
 }
 
