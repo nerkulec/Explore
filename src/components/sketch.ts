@@ -18,8 +18,8 @@ const sketch = (p: P5Instance) => {
     cheetahGame.update()
     p.background(255)
     p.translate(p.width/2, p.height/2)
+    p.translate(-cheetahGame.cheetah.torso.position.x, 0)
     cheetahGame.draw()
-    p.noLoop()
   }
 }
 

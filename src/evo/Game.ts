@@ -38,6 +38,12 @@ export class CheetahGame extends PhysicsGame {
     this.cheetah = new Cheetah(this.p5)
     Composite.add(this.engine.world, [this.ground, this.cheetah.composite])
     this.reset()
+
+    // const render = Render.create({
+    //   element: document.body,
+    //   engine: this.engine
+    // })
+    // Render.run(render)
   }
 
   update() {
@@ -47,6 +53,9 @@ export class CheetahGame extends PhysicsGame {
   draw() {
     const p = this.p5
     drawRect(p, this.ground)
+    for (const fence of this.fences) {
+      drawRect(p, fence)
+    }
     this.cheetah.draw()
   }
 
