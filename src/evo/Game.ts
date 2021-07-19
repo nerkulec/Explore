@@ -1,4 +1,4 @@
-import { Composite, Engine } from "matter-js"
+import { Composite, Engine, Render } from "matter-js"
 import { P5Instance } from "../components/P5Wrapper"
 import { Cheetah, createRect, drawRect } from "./Agent"
 import { Body } from 'matter-js'
@@ -39,11 +39,12 @@ export class CheetahGame extends PhysicsGame {
     Composite.add(this.engine.world, [this.ground, this.cheetah.composite])
     this.reset()
 
-    // const render = Render.create({
-    //   element: document.body,
-    //   engine: this.engine
-    // })
-    // Render.run(render)
+    const render = Render.create({
+      element: document.body,
+      engine: this.engine
+    })
+    Render.lookAt(render, this.cheetah.torso, {x: 300, y: 300})
+    Render.run(render)
   }
 
   update() {
@@ -52,6 +53,7 @@ export class CheetahGame extends PhysicsGame {
 
   draw() {
     const p = this.p5
+    p.background(127)
     drawRect(p, this.ground)
     for (const fence of this.fences) {
       drawRect(p, fence)
