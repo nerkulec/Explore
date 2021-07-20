@@ -15,7 +15,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "deep-equal": "^2.0.5",
-    "matter-js": "^0.17.1",
+    "matter-js": "liabru/matter-js#angle-constraints",
     "p5": "^1.4.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

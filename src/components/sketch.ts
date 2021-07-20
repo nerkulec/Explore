@@ -15,7 +15,13 @@ const sketch = (p: P5Instance) => {
 
   p.draw = () => {
     // p.noStroke()
-    cheetahGame.update()
+    if (p.keyIsDown(37)) {
+      cheetahGame.update([1,-1,1,1,-1])
+    } else if (p.keyIsDown(39)) {
+      cheetahGame.update([-1,1,1,-1, 1])
+    } else {
+      cheetahGame.update([0,0,0,0,0])
+    }
     p.background(255)
     p.translate(p.width/2, p.height/2)
     p.translate(-cheetahGame.cheetah.torso.position.x, 0)

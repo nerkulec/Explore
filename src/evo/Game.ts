@@ -20,7 +20,7 @@ abstract class PhysicsGame implements Game {
   reset() {
     this.reward = 0
   }
-  abstract update(): void
+  abstract update(torque: number[]): void
   abstract draw(): void
 }
 
@@ -47,7 +47,8 @@ export class CheetahGame extends PhysicsGame {
     Render.run(render)
   }
 
-  update() {
+  update(torque: [number, number, number, number, number]) {
+    this.cheetah.applyTorque(torque)
     Engine.update(this.engine)
   }
 

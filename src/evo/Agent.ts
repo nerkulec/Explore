@@ -46,6 +46,7 @@ export class Cheetah extends PhysicsAgent {
   fleg: Body[]
   constraints: Constraint[]
   composite: Composite
+  torque_scale: number
 
   constructor(p5: P5Instance) {
     super(p5)
@@ -53,108 +54,162 @@ export class Cheetah extends PhysicsAgent {
     const height = 260
     const margin = 10
     const leg_height = (height-2*margin)/3
+    this.torque_scale = 0.5
+    this.composite = Composite.create()
     this.constraints = []
     const group = Body.nextGroup(true)
     this.torso = createRect(0, 140, length, 20, {
       collisionFilter: { group },
-      chamfer: { radius: margin }
+      chamfer: { radius: margin },
+      friction: 0.5
     })
     this.rleg = []
     this.fleg = []
     for (let i=0; i<3; i++) {
       this.rleg.push(createRect(-length/2+margin, 170+(leg_height-2*margin)*i, 2*margin, leg_height, {
         collisionFilter: { group },
-        chamfer: { radius: margin }
+        chamfer: { radius: margin },
+        friction: 0.5
       }))
     }
     this.fleg.push(createRect(length/2-margin, 170, 2*margin, leg_height, {
       collisionFilter: { group },
-      chamfer: { radius: margin }
+      chamfer: { radius: margin },
+      friction: 0.5
     }))
     const fleg_height2 = 2*leg_height-2*margin-0.3*leg_height
     // const fleg_height2 = 2*leg_height-2*margin
     this.fleg.push(createRect(length/2-margin, 170+fleg_height2/2+2*margin, 2*margin, fleg_height2, {
       collisionFilter: { group },
-      chamfer: { radius: margin }
+      chamfer: { radius: margin },
+      friction: 0.5
     }))
     // rear leg constraints
-    this.constraints.push(Constraint.create({
+    this.constraints.push((Constraint as any).create({
       bodyA: this.rleg[0],
       pointA: { x: 0, y: -leg_height/2+margin },
       bodyB: this.torso,
-      pointB: { x: -length/2+margin, y: 0 }
+      pointB: { x: -length/2+margin, y: 0 },
+      angleA: 1,
+      angleB: 1,
+      angularStiffness: 1
     }))
-    this.constraints.push(Constraint.create({
+    this.constraints.push((Constraint as any).create({
       bodyA: this.rleg[1],
       pointA: { x: 0, y: -leg_height/2+margin },
       bodyB: this.rleg[0],
-      pointB: { x: 0, y: leg_height/2-margin }
+      pointB: { x: 0, y: leg_height/2-margin },
+      angleA: 1,
+      angleB: 1,
+      angularStiffness: 1
     }))
-    this.constraints.push(Constraint.create({
+    this.constraints.push((Constraint as any).create({
       bodyA: this.rleg[2],
       pointA: { x: 0, y: -leg_height/2+margin },
       bodyB: this.rleg[1],
-      pointB: { x: 0, y: leg_height/2-margin }
+      pointB: { x: 0, y: leg_height/2-margin },
+      angleA: 1,
+      angleB: 1,
+      angularStiffness: 1
     }))
     // front leg constraints
-    this.constraints.push(Constraint.create({
+    this.constraints.push((Constraint as any).create({
       bodyA: this.fleg[0],
       pointA: { x: 0, y: -leg_height/2+margin },
       bodyB: this.torso,
-      pointB: { x: length/2-margin, y: 0 }
+      pointB: { x: length/2-margin, y: 0 },
+      angleA: 1,
+      angleB: 1,
+      angularStiffness: 1
     }))
-    this.constraints.push(Constraint.create({
+    this.constraints.push((Constraint as any).create({
       bodyA: this.fleg[1],
       pointA: { x: 0, y: -fleg_height2/2+margin },
       bodyB: this.fleg[0],
-      pointB: { x: 0, y: leg_height/2-margin }
+      pointB: { x: 0, y: leg_height/2-margin },
+      angleA: 1,
+      angleB: 1,
+      angularStiffness: 1
     }))
-    Body.rotate(this.rleg[0], 1)
-    Body.rotate(this.rleg[1], -1)
-    Body.rotate(this.rleg[2], 1)
-    Body.rotate(this.fleg[0], 1)
-    Body.rotate(this.fleg[1], -1)
-    // rear leg "angle" constraints
-    const angle_stiffness = 0.1
-    this.constraints.push(Constraint.create({
-      bodyA: this.rleg[0],
-      pointA: { x: 0, y: leg_height/2-margin },
-      bodyB: this.torso,
-      pointB: { x: length/2-margin, y: 0 },
-      stiffness: angle_stiffness
-    }))
-    this.constraints.push(Constraint.create({
-      bodyA: this.rleg[1],
-      pointA: { x: 0, y: leg_height/2-margin },
-      bodyB: this.rleg[0],
-      pointB: { x: 0, y: -leg_height/2+margin },
-      stiffness: angle_stiffness
-    }))
-    this.constraints.push(Constraint.create({
-      bodyA: this.rleg[2],
-      pointA: { x: 0, y: leg_height/2-margin },
-      bodyB: this.rleg[1],
-      pointB: { x: 0, y: -leg_height/2+margin },
-      stiffness: angle_stiffness
-    }))
-    // front leg "angle" constraints
-    this.constraints.push(Constraint.create({
-      bodyA: this.fleg[0],
-      pointA: { x: 0, y: leg_height/2-margin },
-      bodyB: this.torso,
-      pointB: { x: -length/2+margin, y: 0 },
-      stiffness: angle_stiffness
-    }))
-    this.constraints.push(Constraint.create({
-      bodyA: this.fleg[1],
-      pointA: { x: 0, y: leg_height/2-margin },
-      bodyB: this.fleg[0],
-      pointB: { x: 0, y: -leg_height/2+margin },
-      stiffness: angle_stiffness
-    }))
-    this.composite = Composite.create()
+    // // rear leg "angle" constraints
+    // const angle_stiffness = 0.1
+    // this.constraints.push(Constraint.create({
+    //   bodyA: this.rleg[0],
+    //   pointA: { x: 0, y: leg_height/2-margin },
+    //   bodyB: this.torso,
+    //   pointB: { x: length/2-margin, y: 0 },
+    //   stiffness: angle_stiffness
+    // }))
+    // this.constraints[this.constraints.length-1].length -= 20
+    // this.constraints.push(Constraint.create({
+    //   bodyA: this.rleg[1],
+    //   pointA: { x: 0, y: leg_height/2-margin },
+    //   bodyB: this.rleg[0],
+    //   pointB: { x: 0, y: -leg_height/2+margin },
+    //   stiffness: angle_stiffness
+    // }))
+    // this.constraints[this.constraints.length-1].length -= 10
+    // this.constraints.push(Constraint.create({
+    //   bodyA: this.rleg[2],
+    //   pointA: { x: 0, y: leg_height/2-margin },
+    //   bodyB: this.rleg[1],
+    //   pointB: { x: 0, y: -leg_height/2+margin },
+    //   stiffness: angle_stiffness
+    // }))
+    // this.constraints[this.constraints.length-1].length -= 10
+    // // front leg "angle" constraints
+    // this.constraints.push(Constraint.create({
+    //   bodyA: this.fleg[0],
+    //   pointA: { x: 0, y: leg_height/2-margin },
+    //   bodyB: this.torso,
+    //   pointB: { x: -length/2+margin, y: 0 },
+    //   stiffness: angle_stiffness
+    // }))
+    // this.constraints[this.constraints.length-1].length -= 10
+    // this.constraints.push(Constraint.create({
+    //   bodyA: this.fleg[1],
+    //   pointA: { x: 0, y: leg_height/2-margin },
+    //   bodyB: this.fleg[0],
+    //   pointB: { x: 0, y: -leg_height/2+margin },
+    //   stiffness: angle_stiffness
+    // }))
+    // this.constraints[this.constraints.length-1].length -= 10
+    // // Body.rotate(this.rleg[0], 1)
+    // // Body.rotate(this.rleg[1], -1)
+    // // Body.rotate(this.rleg[2], 1)
+    // // Body.rotate(this.fleg[0], 1)
+    // // Body.rotate(this.fleg[1], -1)
+
     this.bodies = [...this.rleg, ...this.fleg, this.torso]
+    const a = Bodies.rectangle(0, 0, 30, 80, {
+      chamfer: {radius: 10},
+      isStatic: true
+    })
+    const b = Bodies.rectangle(60, 0, 30, 80, {
+      chamfer: {radius: 10}
+    })
+    this.bodies.push(a)
+    this.bodies.push(b)
+    this.constraints.push((Constraint as any).create({
+      bodyA: a,
+      bodyB: b,
+      angleB: 1,
+      angleBMin: 0.9,
+      angleBMax: 1.1,
+      angularStiffness: 1,
+      angleBStiffness: 1
+    }))
+
     Composite.add(this.composite, [...this.bodies, ...this.constraints])
+  }
+
+  applyTorque(torque: [number, number, number, number, number]) {
+    const limbs_a = [this.rleg[0], this.rleg[1], this.rleg[2], this.fleg[0], this.fleg[1]]
+    const limbs_b = [this.torso, this.rleg[0], this.rleg[1], this.torso, this.fleg[0]]
+    for (let i=0; i<5; i++) {
+      limbs_a[i].torque += torque[i]/limbs_a[i].mass*this.torque_scale
+      limbs_b[i].torque -= torque[i]/limbs_a[i].mass*this.torque_scale
+    }
   }
 
   draw() {
