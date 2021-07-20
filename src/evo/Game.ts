@@ -1,7 +1,6 @@
-import { Composite, Engine, Render } from "matter-js"
+import { World, Body, Plane } from "p2"
 import { P5Instance } from "../components/P5Wrapper"
-import { Cheetah, createRect, drawRect } from "./Agent"
-import { Body } from 'matter-js'
+import { Cheetah, drawBody } from "./Agent"
 
 export interface Game {
   reset(): void
@@ -25,40 +24,40 @@ abstract class PhysicsGame implements Game {
 }
 
 export class CheetahGame extends PhysicsGame {
-  engine: Engine
+  world: World
+  fixedTimestep: number = 1/60
   ground: Body
-  fences: Body[]
   cheetah: Cheetah
 
   constructor(p5: P5Instance) {
     super(p5)
-    this.engine = Engine.create()
-    this.ground = createRect(0, 340, 1080, 20, { isStatic: true })
-    this.fences = []
-    this.cheetah = new Cheetah(this.p5)
-    Composite.add(this.engine.world, [this.ground, this.cheetah.composite])
-    this.reset()
-
-    const render = Render.create({
-      element: document.body,
-      engine: this.engine
+    // createRect(0, 340, 1080, 20, { isStatic: true })
+    this.world = new World({
+      gravity : [0, -900]
     })
-    Render.lookAt(render, this.cheetah.torso, {x: 300, y: 300})
-    Render.run(render)
+    this.ground = new Body({
+      mass: 0
+    })
+    const groundShape = new Plane({position: [0, 340]})
+    this.ground.addShape(groundShape)
+    this.world.addBody(this.ground)
+    this.cheetah = new Cheetah(p5)
+    this.cheetah.bodies.forEach(b => this.world.addBody(b))
+    this.cheetah.constraints.forEach(c => this.world.addConstraint(c))
+    this.cheetah.springs.forEach(s => this.world.addSpring(s))
+    this.reset()
   }
 
   update(torque: [number, number, number, number, number]) {
+    this.world.step(this.fixedTimestep)
+    console.log(this.world.bodies[1].position)
     this.cheetah.applyTorque(torque)
-    Engine.update(this.engine)
   }
 
   draw() {
     const p = this.p5
-    p.background(127)
-    drawRect(p, this.ground)
-    for (const fence of this.fences) {
-      drawRect(p, fence)
-    }
+    p.background(191)
+    drawBody(p, this.ground)
     this.cheetah.draw()
   }
 

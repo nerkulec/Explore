@@ -24,8 +24,11 @@ const sketch = (p: P5Instance) => {
     }
     p.background(255)
     p.translate(p.width/2, p.height/2)
-    p.translate(-cheetahGame.cheetah.torso.position.x, 0)
+    p.scale(1, -1)
+    // p.translate(-cheetahGame.cheetah.torso.position.x, 0)
+    p.translate(0, -300)
     cheetahGame.draw()
+
   }
 }
 
