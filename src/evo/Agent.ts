@@ -1,5 +1,5 @@
 import { P5Instance } from '../components/P5Wrapper'
-import { Capsule, Body, Shape, RotationalSpring, RevoluteConstraint, Plane, Circle, vec2 } from 'p2'
+import { Capsule, Body, RotationalSpring, RevoluteConstraint, Plane, Circle, vec2 } from 'p2'
 
 export interface Agent {
   draw(): void
@@ -40,6 +40,7 @@ export const drawBody = (p: P5Instance, body: Body) => {
 type v2 = [number, number]
 const add = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1+x2, y1+y2]
 const sub = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1-x2, y1-y2]
+const sum = (xs: number[]): number => xs.reduce((s, x) => s+x, 0)
 
 export class Cheetah extends PhysicsAgent {
   bodies: Body[]
@@ -65,13 +66,13 @@ export class Cheetah extends PhysicsAgent {
     this.rleg = []
     this.fleg = []
     this.torso.addShape(torso_shape)
-    const lengths = [leg_height, leg_height, leg_height/2]
+    const lengths = [length, leg_height, leg_height, leg_height/2]
     const positions = [0.5*leg_height, 1.5*leg_height, 2.25*leg_height]
     const rleg_angles = [2.4, -Math.PI/2, Math.PI/2]
     const fleg_angles = [-2.2, Math.PI/2, 0]
     const rleg_shapes = []
     const fleg_shapes = []
-    for (let i=0; i<3; i++) {
+    for (let i=1; i<4; i++) {
       rleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
       fleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
     }
@@ -81,61 +82,62 @@ export class Cheetah extends PhysicsAgent {
       this.rleg[i].addShape(rleg_shapes[i])
       this.fleg[i].addShape(fleg_shapes[i])
     }
-    const rleg_springs = [this.torso, ...this.rleg]
-    const fleg_springs = [this.torso, ...this.fleg]
+    const rleg_joints = [this.torso, ...this.rleg]
+    const fleg_joints = [this.torso, ...this.fleg]
     for (let i=0; i<3; i++) {
       this.springs.push(new RotationalSpring(
-      rleg_springs[i], rleg_springs[i+1], {
+      rleg_joints[i], rleg_joints[i+1], {
         restAngle: rleg_angles[i],
         stiffness: 1000000,
         damping: 0.9
       }))
       this.springs.push(new RotationalSpring(
-      fleg_springs[i], fleg_springs[i+1], {
+      fleg_joints[i], fleg_joints[i+1], {
         restAngle: fleg_angles[i],
         stiffness: 1000000,
         damping: 0.9
       }))
     }
     // leg constraints
-    for (let i=0; i<2; i++) {
+    for (let i=0; i<3; i++) {
       this.constraints.push(new RevoluteConstraint(
-        this.rleg[i], this.rleg[i+1], {
+        rleg_joints[i], rleg_joints[i+1], {
         localPivotA: [-lengths[i]/2, 0],
         localPivotB: [lengths[i+1]/2, 0],
         collideConnected: false
       }))
       this.constraints.push(new RevoluteConstraint(
-        this.fleg[i], this.fleg[i+1], {
+        fleg_joints[i], fleg_joints[i+1], {
         localPivotA: [lengths[i]/2, 0],
         localPivotB: [-lengths[i+1]/2, 0],
         collideConnected: false
       }))
     }
-    this.constraints.push(new RevoluteConstraint(
-      this.torso, this.rleg[0], {
-        localPivotA: [-height/2, 0],
-        localPivotB: [leg_height/2, 0],
-        collideConnected: false
-    }))
-    this.constraints.push(new RevoluteConstraint(
-      this.torso, this.fleg[0], {
-        localPivotA: [height/2, 0],
-        localPivotB: [-leg_height/2, 0],
-        collideConnected: false
-    }))
-    // for (let i=0; i<3; i++) {
-    //   const rleg_pos = this.rleg[i].position
-    //   const relPivotA: [number, number] = [-lengths[i]/2, 0]
-    //   const relPivotB: [number, number] = [lengths[i+1]/2, 0]
-    //   vec2.rotate(relPivotA, relPivotA, rleg_angles[i])
-    //   vec2.rotate(relPivotB, relPivotA, rleg_angles[i+1])
-    //   const delta = sub(add(this))
-    //   for (let j=i; j<3; j++) {
-    //     this.rleg[j].angle += rleg_angles[i]
-    //     this.fleg[j].angle += fleg_angles[i]
-    //   }
-    // }
+    // leg placement
+    for (let i=0; i<3; i++) {
+      const rleg_preankle = rleg_joints[i].position
+      const rleg_postankle = rleg_joints[i+1].position
+      const rleg_pre_pivot: [number, number] = [-lengths[i]/2, 0]
+      const rleg_post_pivot: [number, number] = [lengths[i+1]/2, 0]
+      const fleg_preankle = fleg_joints[i].position
+      const fleg_postankle = fleg_joints[i+1].position
+      const fleg_pre_pivot: [number, number] = [lengths[i]/2, 0]
+      const fleg_post_pivot: [number, number] = [-lengths[i+1]/2, 0]
+      vec2.rotate(rleg_post_pivot, rleg_post_pivot, sum(rleg_angles.slice(0, i+1)))
+      vec2.rotate(rleg_pre_pivot, rleg_pre_pivot, sum([0, ...rleg_angles].slice(0, i+1)))
+      vec2.rotate(fleg_post_pivot, fleg_post_pivot, sum(fleg_angles.slice(0, i+1)))
+      vec2.rotate(fleg_pre_pivot, fleg_pre_pivot, sum([0, ...fleg_angles].slice(0, i+1)))
+      const rleg_delta = sub(add(rleg_preankle, rleg_pre_pivot), add(rleg_postankle, rleg_post_pivot))
+      const fleg_delta = sub(add(fleg_preankle, fleg_pre_pivot), add(fleg_postankle, fleg_post_pivot))
+      const rleg_pos = this.rleg[i].position
+      const fleg_pos = this.fleg[i].position
+      vec2.add(rleg_pos, rleg_pos, rleg_delta)
+      vec2.add(fleg_pos, fleg_pos, fleg_delta)
+      for (let j=i; j<3; j++) {
+        this.rleg[j].angle += rleg_angles[i]
+        this.fleg[j].angle += fleg_angles[i]
+      }
+    }
     this.bodies.push(this.torso, ...this.rleg, ...this.fleg)
   }
 
