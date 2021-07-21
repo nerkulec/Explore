@@ -50,7 +50,6 @@ export class CheetahGame extends PhysicsGame {
 
   update(torque: [number, number, number, number, number]) {
     this.world.step(this.fixedTimestep)
-    console.log(this.world.bodies[1].position)
     this.cheetah.applyTorque(torque)
   }
 

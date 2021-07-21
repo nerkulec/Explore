@@ -1,5 +1,5 @@
 import { P5Instance } from '../components/P5Wrapper'
-import { Capsule, Body, Shape, RotationalSpring, RevoluteConstraint, Plane, Circle } from 'p2'
+import { Capsule, Body, Shape, RotationalSpring, RevoluteConstraint, Plane, Circle, vec2 } from 'p2'
 
 export interface Agent {
   draw(): void
@@ -14,8 +14,6 @@ abstract class PhysicsAgent implements Agent {
   }
   abstract draw(): void
 }
-
-const range = (n: number) => [...Array(n).keys()]
 
 export const drawBody = (p: P5Instance, body: Body) => {
   p.push()
@@ -39,6 +37,9 @@ export const drawBody = (p: P5Instance, body: Body) => {
   }
   p.pop()
 }
+type v2 = [number, number]
+const add = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1+x2, y1+y2]
+const sub = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1-x2, y1-y2]
 
 export class Cheetah extends PhysicsAgent {
   bodies: Body[]
@@ -52,7 +53,7 @@ export class Cheetah extends PhysicsAgent {
   constructor(p5: P5Instance) {
     super(p5)
     const length = 240
-    const height = 260
+    const height = 240
     const margin = 10
     const leg_height = height/3
     this.torque_scale = 0.5
@@ -60,68 +61,82 @@ export class Cheetah extends PhysicsAgent {
     this.constraints = []
     this.springs = []
     const torso_shape = new Capsule({length, radius: margin})
-    this.torso = new Body({
-      mass: 1,
-      position : [0, 400]
-    })
+    this.torso = new Body({mass: 1, position : [0, 400]})
     this.rleg = []
     this.fleg = []
     this.torso.addShape(torso_shape)
-    this.bodies.push(this.torso)
-    // this.springs.push(new RotationalSpring(this.torso, this.torso2, {
-    //   stiffness: 1000000,
-    //   restAngle: -1
-    // }))
-    // this.constraints.push(new RevoluteConstraint(this.torso, this.torso2, {
-    //   localPivotA: [-length/2, 0],
-    //   localPivotB: [ length/2, 0],
-    //   collideConnected: false
-    // }))
-    const rleg_shapes = Array(3).map(() => new Capsule({length: leg_height, radius: margin}))
-
-    // this.rleg = []
-    // this.fleg = []
+    const lengths = [leg_height, leg_height, leg_height/2]
+    const positions = [0.5*leg_height, 1.5*leg_height, 2.25*leg_height]
+    const rleg_angles = [2.4, -Math.PI/2, Math.PI/2]
+    const fleg_angles = [-2.2, Math.PI/2, 0]
+    const rleg_shapes = []
+    const fleg_shapes = []
+    for (let i=0; i<3; i++) {
+      rleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
+      fleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
+    }
+    for (let i=0; i<3; i++) {
+      this.rleg.push(new Body({mass: 1, position: [-length/2-positions[i], 400]}))
+      this.fleg.push(new Body({mass: 1, position: [ length/2+positions[i], 400]}))
+      this.rleg[i].addShape(rleg_shapes[i])
+      this.fleg[i].addShape(fleg_shapes[i])
+    }
+    const rleg_springs = [this.torso, ...this.rleg]
+    const fleg_springs = [this.torso, ...this.fleg]
+    for (let i=0; i<3; i++) {
+      this.springs.push(new RotationalSpring(
+      rleg_springs[i], rleg_springs[i+1], {
+        restAngle: rleg_angles[i],
+        stiffness: 1000000,
+        damping: 0.9
+      }))
+      this.springs.push(new RotationalSpring(
+      fleg_springs[i], fleg_springs[i+1], {
+        restAngle: fleg_angles[i],
+        stiffness: 1000000,
+        damping: 0.9
+      }))
+    }
+    // leg constraints
+    for (let i=0; i<2; i++) {
+      this.constraints.push(new RevoluteConstraint(
+        this.rleg[i], this.rleg[i+1], {
+        localPivotA: [-lengths[i]/2, 0],
+        localPivotB: [lengths[i+1]/2, 0],
+        collideConnected: false
+      }))
+      this.constraints.push(new RevoluteConstraint(
+        this.fleg[i], this.fleg[i+1], {
+        localPivotA: [lengths[i]/2, 0],
+        localPivotB: [-lengths[i+1]/2, 0],
+        collideConnected: false
+      }))
+    }
+    this.constraints.push(new RevoluteConstraint(
+      this.torso, this.rleg[0], {
+        localPivotA: [-height/2, 0],
+        localPivotB: [leg_height/2, 0],
+        collideConnected: false
+    }))
+    this.constraints.push(new RevoluteConstraint(
+      this.torso, this.fleg[0], {
+        localPivotA: [height/2, 0],
+        localPivotB: [-leg_height/2, 0],
+        collideConnected: false
+    }))
     // for (let i=0; i<3; i++) {
-    //   this.rleg.push(createRect(-length/2+margin, 170+(leg_height-2*margin)*i, 2*margin, leg_height, {
-    //     collisionFilter: { group },
-    //     chamfer: { radius: margin },
-    //     friction: 0.5
-    //   }))
+    //   const rleg_pos = this.rleg[i].position
+    //   const relPivotA: [number, number] = [-lengths[i]/2, 0]
+    //   const relPivotB: [number, number] = [lengths[i+1]/2, 0]
+    //   vec2.rotate(relPivotA, relPivotA, rleg_angles[i])
+    //   vec2.rotate(relPivotB, relPivotA, rleg_angles[i+1])
+    //   const delta = sub(add(this))
+    //   for (let j=i; j<3; j++) {
+    //     this.rleg[j].angle += rleg_angles[i]
+    //     this.fleg[j].angle += fleg_angles[i]
+    //   }
     // }
-    // this.fleg.push(createRect(length/2-margin, 170, 2*margin, leg_height))
-    // this.fleg.push(createRect(length/2-margin, 170+fleg_height2/2+2*margin, 2*margin, fleg_height2))
-    // // rear leg constraints
-    // this.constraints.push(Constraint.create({
-    //   bodyA: this.rleg[0],
-    //   pointA: { x: 0, y: -leg_height/2+margin },
-    //   bodyB: this.torso,
-    //   pointB: { x: -length/2+margin, y: 0 }
-    // }))
-    // this.constraints.push(Constraint.create({
-    //   bodyA: this.rleg[1],
-    //   pointA: { x: 0, y: -leg_height/2+margin },
-    //   bodyB: this.rleg[0],
-    //   pointB: { x: 0, y: leg_height/2-margin }
-    // }))
-    // this.constraints.push(Constraint.create({
-    //   bodyA: this.rleg[2],
-    //   pointA: { x: 0, y: -leg_height/2+margin },
-    //   bodyB: this.rleg[1],
-    //   pointB: { x: 0, y: leg_height/2-margin }
-    // }))
-    // // front leg constraints
-    // this.constraints.push(Constraint.create({
-    //   bodyA: this.fleg[0],
-    //   pointA: { x: 0, y: -leg_height/2+margin },
-    //   bodyB: this.torso,
-    //   pointB: { x: length/2-margin, y: 0 }
-    // }))
-    // this.constraints.push(Constraint.create({
-    //   bodyA: this.fleg[1],
-    //   pointA: { x: 0, y: -fleg_height2/2+margin },
-    //   bodyB: this.fleg[0],
-    //   pointB: { x: 0, y: leg_height/2-margin }
-    // }))
+    this.bodies.push(this.torso, ...this.rleg, ...this.fleg)
   }
 
   applyTorque(torque: [number, number, number, number, number]) {

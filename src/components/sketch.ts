@@ -20,15 +20,15 @@ const sketch = (p: P5Instance) => {
     } else if (p.keyIsDown(39)) {
       cheetahGame.update([-1,1,1,-1, 1])
     } else {
-      cheetahGame.update([0,0,0,0,0])
+      // cheetahGame.update([0,0,0,0,0])
     }
     p.background(255)
     p.translate(p.width/2, p.height/2)
     p.scale(1, -1)
-    // p.translate(-cheetahGame.cheetah.torso.position.x, 0)
+    p.translate(-cheetahGame.cheetah.torso.position[0], 0)
     p.translate(0, -300)
+    // console.log(cheetahGame.cheetah.torso.position)
     cheetahGame.draw()
-
   }
 }
 
