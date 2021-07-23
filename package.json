@@ -15,7 +15,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "deep-equal": "^2.0.5",
-    "p2": "^0.7.1",
+    "p2": "schteppe/p2.js#master",
     "p5": "^1.4.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

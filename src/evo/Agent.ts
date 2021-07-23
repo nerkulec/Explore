@@ -18,17 +18,12 @@ abstract class PhysicsAgent implements Agent {
 export const drawBody = (p: P5Instance, body: Body) => {
   p.push()
   p.rectMode(p.CENTER)
-  p.translate(...body.position)
+  p.translate(...body.position as [number, number])
   p.rotate(body.angle)
   for (const shape of body.shapes){
     if (shape instanceof Capsule) {
       p.fill(127)
       p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius, shape.radius)
-    }
-    if (shape instanceof Plane) {
-      p.fill(230)
-      p.rectMode(p.CORNER)
-      p.rect(-10000, 0, 20000, -10000)
     }
     if (shape instanceof Circle) {
       p.fill(230)
@@ -42,6 +37,8 @@ const add = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1+x2, y1+y2]
 const sub = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1-x2, y1-y2]
 const sum = (xs: number[]): number => xs.reduce((s, x) => s+x, 0)
 
+export type CheetahActionSpace = [number, number, number, number, number, number]
+
 export class Cheetah extends PhysicsAgent {
   bodies: Body[]
   constraints: RevoluteConstraint[]
@@ -49,26 +46,36 @@ export class Cheetah extends PhysicsAgent {
   torso: Body
   rleg: Body[]
   fleg: Body[]
-  torque_scale: number
+  head: Body
+  torque_scale: number = 50
+  torque_coefs: CheetahActionSpace = [1, 1, 1, 1, 1, 0.2]
 
   constructor(p5: P5Instance) {
     super(p5)
-    const length = 240
-    const height = 240
-    const margin = 10
+    const length = 2.40
+    const height = 2.40
+    const margin = 0.10
+    const start_y = 1.50
     const leg_height = height/3
-    this.torque_scale = 0.5
     this.bodies = []
     this.constraints = []
     this.springs = []
+    const neck_mask = 0
     const torso_shape = new Capsule({length, radius: margin})
-    this.torso = new Body({mass: 1, position : [0, 400]})
+    torso_shape.collisionGroup = 1
+    torso_shape.collisionMask = neck_mask
+    this.torso = new Body({mass: length, position : [0, start_y]})
+    this.torso.addShape(torso_shape)
+    const head_shape = new Capsule({length: leg_height, radius: margin})
+    head_shape.collisionGroup = 2
+    head_shape.collisionMask = neck_mask
+    this.head = new Body({mass: leg_height, position : [length/2+leg_height/2, start_y]})
+    this.head.addShape(head_shape)
     this.rleg = []
     this.fleg = []
-    this.torso.addShape(torso_shape)
     const lengths = [length, leg_height, leg_height, leg_height/2]
     const positions = [0.5*leg_height, 1.5*leg_height, 2.25*leg_height]
-    const rleg_angles = [2.4, -Math.PI/2, Math.PI/2]
+    const rleg_angles = [2.42, -Math.PI/2, Math.PI/2]
     const fleg_angles = [-2.2, Math.PI/2, 0]
     const rleg_shapes = []
     const fleg_shapes = []
@@ -76,29 +83,37 @@ export class Cheetah extends PhysicsAgent {
       rleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
       fleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
     }
+    fleg_shapes[0].collisionGroup = 4
+    fleg_shapes[0].collisionMask = neck_mask
     for (let i=0; i<3; i++) {
-      this.rleg.push(new Body({mass: 1, position: [-length/2-positions[i], 400]}))
-      this.fleg.push(new Body({mass: 1, position: [ length/2+positions[i], 400]}))
+      this.rleg.push(new Body({mass: lengths[i], position: [-length/2-positions[i], start_y]}))
+      this.fleg.push(new Body({mass: lengths[i], position: [ length/2+positions[i], start_y]}))
       this.rleg[i].addShape(rleg_shapes[i])
       this.fleg[i].addShape(fleg_shapes[i])
     }
     const rleg_joints = [this.torso, ...this.rleg]
     const fleg_joints = [this.torso, ...this.fleg]
+    // springs
+    const stiffness = 150
+    const damping = 1.5
     for (let i=0; i<3; i++) {
       this.springs.push(new RotationalSpring(
-      rleg_joints[i], rleg_joints[i+1], {
+        rleg_joints[i], rleg_joints[i+1], {
         restAngle: rleg_angles[i],
-        stiffness: 1000000,
-        damping: 0.9
+        stiffness, damping
       }))
       this.springs.push(new RotationalSpring(
-      fleg_joints[i], fleg_joints[i+1], {
+        fleg_joints[i], fleg_joints[i+1], {
         restAngle: fleg_angles[i],
-        stiffness: 1000000,
-        damping: 0.9
+        stiffness, damping
       }))
     }
-    // leg constraints
+    // this.springs.push(new RotationalSpring(
+    //   this.torso, this.head, {
+    //   restAngle: 0,
+    //   stiffness, damping
+    // }))
+    // constraints
     for (let i=0; i<3; i++) {
       this.constraints.push(new RevoluteConstraint(
         rleg_joints[i], rleg_joints[i+1], {
@@ -113,14 +128,21 @@ export class Cheetah extends PhysicsAgent {
         collideConnected: false
       }))
     }
+    // this.constraints.push(new RevoluteConstraint(
+    //   this.torso, this.head, {
+    //   localPivotA: [length/2, 0],
+    //   localPivotB: [-lengths[1]/2],
+    //   collideConnected: false
+    // }))
+
     // leg placement
     for (let i=0; i<3; i++) {
-      const rleg_preankle = rleg_joints[i].position
-      const rleg_postankle = rleg_joints[i+1].position
+      const rleg_preankle = rleg_joints[i].position as [number, number]
+      const rleg_postankle = rleg_joints[i+1].position as [number, number]
       const rleg_pre_pivot: [number, number] = [-lengths[i]/2, 0]
       const rleg_post_pivot: [number, number] = [lengths[i+1]/2, 0]
-      const fleg_preankle = fleg_joints[i].position
-      const fleg_postankle = fleg_joints[i+1].position
+      const fleg_preankle = fleg_joints[i].position as [number, number]
+      const fleg_postankle = fleg_joints[i+1].position as [number, number]
       const fleg_pre_pivot: [number, number] = [lengths[i]/2, 0]
       const fleg_post_pivot: [number, number] = [-lengths[i+1]/2, 0]
       vec2.rotate(rleg_post_pivot, rleg_post_pivot, sum(rleg_angles.slice(0, i+1)))
@@ -138,15 +160,15 @@ export class Cheetah extends PhysicsAgent {
         this.fleg[j].angle += fleg_angles[i]
       }
     }
-    this.bodies.push(this.torso, ...this.rleg, ...this.fleg)
+    this.bodies.push(this.torso, this.head, ...this.rleg, ...this.fleg)
   }
 
-  applyTorque(torque: [number, number, number, number, number]) {
-    // const limbs_a = [this.rleg[0], this.rleg[1], this.rleg[2], this.fleg[0], this.fleg[1]]
-    // const limbs_b = [this.torso, this.rleg[0], this.rleg[1], this.torso, this.fleg[0]]
-    for (let i=0; i<5; i++) {
-      // limbs_a[i].torque += torque[i]/limbs_a[i].mass*this.torque_scale
-      // limbs_b[i].torque -= torque[i]/limbs_a[i].mass*this.torque_scale
+  applyTorque(torque: CheetahActionSpace) {
+    const limbs_a = [this.rleg[0], this.rleg[1], this.rleg[2], ...this.fleg]
+    const limbs_b = [this.torso, this.rleg[0], this.rleg[1], this.torso, ...this.fleg]
+    for (let i=0; i<6; i++) {
+      limbs_a[i].angularForce += torque[i]*this.torque_scale*this.torque_coefs[i]
+      limbs_b[i].angularForce -= torque[i]*this.torque_scale*this.torque_coefs[i]
     }
   }
 
