@@ -60,15 +60,10 @@ export class Cheetah extends PhysicsAgent {
     this.bodies = []
     this.constraints = []
     this.springs = []
-    const neck_mask = 0
     const torso_shape = new Capsule({length, radius: margin})
-    torso_shape.collisionGroup = 1
-    torso_shape.collisionMask = neck_mask
     this.torso = new Body({mass: length, position : [0, start_y]})
     this.torso.addShape(torso_shape)
     const head_shape = new Capsule({length: leg_height, radius: margin})
-    head_shape.collisionGroup = 2
-    head_shape.collisionMask = neck_mask
     this.head = new Body({mass: leg_height, position : [length/2+leg_height/2, start_y]})
     this.head.addShape(head_shape)
     this.rleg = []
@@ -83,8 +78,6 @@ export class Cheetah extends PhysicsAgent {
       rleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
       fleg_shapes.push(new Capsule({length: lengths[i], radius: margin}))
     }
-    fleg_shapes[0].collisionGroup = 4
-    fleg_shapes[0].collisionMask = neck_mask
     for (let i=0; i<3; i++) {
       this.rleg.push(new Body({mass: lengths[i], position: [-length/2-positions[i], start_y]}))
       this.fleg.push(new Body({mass: lengths[i], position: [ length/2+positions[i], start_y]}))
