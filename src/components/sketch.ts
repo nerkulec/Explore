@@ -24,6 +24,8 @@ const sketch = (p: P5Instance) => {
       cheetahGame.update([1,1,1,1,1,1])
     } else if (p.keyIsDown(40)) {
       cheetahGame.update([-1,-1,-1,-1,-1,-1])
+    } else if (p.keyIsDown(32)) {
+      cheetahGame.reset()
     } else {
       cheetahGame.update([0,0,0,0,0,0])
     }

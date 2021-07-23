@@ -1,6 +1,6 @@
 import { World, Body, Plane } from "p2"
 import { P5Instance } from "../components/P5Wrapper"
-import { Cheetah, drawBody, CheetahActionSpace } from "./Agent"
+import { Cheetah, drawBody, CheetahActionSpace, CheetahObservationSpace } from "./Agent"
 
 export interface Game {
   reset(): void
@@ -79,7 +79,10 @@ export class CheetahGame extends PhysicsGame {
     this.cheetah.draw()
   }
 
-  reset() {
+  reset(): CheetahObservationSpace {
     super.reset()
+    const observation = this.cheetah.getObservation()
+    this.cheetah.reset()
+    return observation
   }
 }
