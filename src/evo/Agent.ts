@@ -108,11 +108,11 @@ export class Cheetah extends PhysicsAgent {
         stiffness, damping
       }))
     }
-    // this.springs.push(new RotationalSpring(
-    //   this.torso, this.head, {
-    //   restAngle: 0,
-    //   stiffness, damping
-    // }))
+    this.springs.push(new RotationalSpring(
+      this.torso, this.head, {
+      restAngle: 0.5,
+      stiffness, damping
+    }))
     // constraints
     for (let i=0; i<3; i++) {
       this.constraints.push(new RevoluteConstraint(
@@ -128,12 +128,12 @@ export class Cheetah extends PhysicsAgent {
         collideConnected: false
       }))
     }
-    // this.constraints.push(new RevoluteConstraint(
-    //   this.torso, this.head, {
-    //   localPivotA: [length/2, 0],
-    //   localPivotB: [-lengths[1]/2],
-    //   collideConnected: false
-    // }))
+    this.constraints.push(new RevoluteConstraint(
+      this.torso, this.head, {
+      localPivotA: [length/2, 0],
+      localPivotB: [-leg_height/2, 0],
+      collideConnected: false
+    }))
 
     // leg placement
     for (let i=0; i<3; i++) {
