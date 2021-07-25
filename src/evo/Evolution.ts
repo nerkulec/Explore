@@ -8,7 +8,7 @@ const argsort = (elems: number[]) => elems
 export const tournamentSelection = (rewards: number[], elites: number): number[] => {
   const rank = argsort(rewards)
   const n = rewards.length
-  console.log(`rewards: ${rewards}`)
+  console.log(`rewards: ${rewards.sort().reverse()}`)
   const winners = rank.slice(n-elites).reverse()
   for (let i=0; i<n-elites; i++) {
     const a = Math.floor(Math.random()*n)
@@ -44,7 +44,10 @@ export const copyModel = async (model: tf.Sequential) => {
 export const evolution = async (rewards: number[], models: tf.Sequential[], elites = 1) => {
   const winners = tournamentSelection(rewards, elites).map(i => copyModel(models[i]))
   // const offspring = [...new Set(winners)]
-  for (let i=elites; i<models.length; i++) {
-    mutate(await winners[i])
+  for (let i=0; i<models.length; i++) {
+    models[i] = await winners[i]
+    if (i>=elites) {
+      mutate(models[i])
+    }
   }
 }
