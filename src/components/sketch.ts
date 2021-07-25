@@ -1,46 +1,69 @@
-import { CheetahGame } from "../evo/Game"
+import { CheetahGame, Game } from "../evo/Game"
+import { getModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
+import * as tf from '@tensorflow/tfjs'
+import { evolution } from "../evo/Evolution"
 
 const sketch = (p: P5Instance) => {
-  let cheetahGame = new CheetahGame(p)
+  const n_agents = 36
+  const ep_len = 600
+  let games: Game[]
+  let models: tf.Sequential[]
+  let ep = 0
+  let gen_num = 0
 
   p.setup = () => {
     p.createCanvas(1080, 720)
-    cheetahGame.reset()
+    games = []
+    models = []
+    for (let i=0; i<n_agents; i++) {
+      models.push(getModel(CheetahGame.obs_size, [64, CheetahGame.act_size]))
+      const game = new CheetahGame(p)
+      game.reset()
+      games.push(game)
+    }
   }
 
   p.updateWithProps = props => {
     
   }
 
-  p.draw = () => {
+  p.draw = async () => {
     // p.noStroke()
     p.strokeWeight(0.01)
-    if (p.keyIsDown(39)) {
-      cheetahGame.update([1,-1,1,1,-1,1])
-    } else if (p.keyIsDown(37)) {
-      cheetahGame.update([-1,1,1,-1,1,-1])
-    } else if (p.keyIsDown(38)) {
-      cheetahGame.update([1,1,1,1,1,1])
-    } else if (p.keyIsDown(40)) {
-      cheetahGame.update([-1,-1,-1,-1,-1,-1])
-    } else if (p.keyIsDown(32)) {
-      cheetahGame.reset()
-    } else {
-      cheetahGame.update([0,0,0,0,0,0])
+    const obs = tf.tensor2d(games.map(game => game.getObservation()))
+    const actionPromises = []
+    for (let i=0; i<n_agents; i++) {
+      actionPromises.push((models[i].predict(obs.slice(i, 1)) as any).array())
+    }
+    const actions = await Promise.all(actionPromises)
+    for (let i=0; i<n_agents; i++) {
+      games[i].update(actions[i][0])
+    }
+    ep += 1
+    if (ep >= ep_len) {
+      ep = 0
+      gen_num += 1
+      const rewards = games.map(game => game.reward)
+      evolution(rewards, models)
+      games.forEach(game => game.reset())
+      console.log(`generation ${gen_num}`)
     }
     p.background(255)
-    const w = 2
-    const h = 2
-    const dx = p.width/w+10
-    const dy = p.height/h+10
-    for (let y=0; y<h; y++) {
+    const w = Math.ceil(Math.sqrt(n_agents))
+    const margin = 0.5
+    const dx = p.width/w
+    const dy = p.height/w
+    for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
+        const i = y*w+x
+        if (i>=n_agents)
+          break
         p.push()
         p.translate(x*dx, y*dy)
-        p.scale(1/w, 1/h)
+        p.scale(1/(w+margin), 1/(w+margin))
         p.translate(p.width/2, p.height/2)
-        cheetahGame.draw()
+        games[i].draw()
         p.pop()
       }
     }

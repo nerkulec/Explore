@@ -4,6 +4,8 @@ import { Cheetah, CheetahActionSpace, CheetahObservationSpace } from "./Agent"
 
 export interface Game {
   reset(): void
+  update(action: number[]): void
+  getObservation(): number[]
   draw(): void
   reward: number
 }
@@ -19,7 +21,8 @@ abstract class PhysicsGame implements Game {
   reset() {
     this.reward = 0
   }
-  abstract update(torque: number[]): void
+  abstract getObservation(): number[]
+  abstract update(action: number[]): void
   abstract draw(): void
 }
 
@@ -28,6 +31,8 @@ export class CheetahGame extends PhysicsGame {
   fixedTimestep: number = 1/60
   ground: Body
   cheetah: Cheetah
+  static obs_size = 10
+  static act_size = 6
 
   constructor(p5: P5Instance) {
     super(p5)
@@ -53,6 +58,7 @@ export class CheetahGame extends PhysicsGame {
   update(torque: CheetahActionSpace) {
     this.world.step(this.fixedTimestep)
     this.cheetah.applyTorque(torque)
+    this.reward = this.cheetah.torso.position[0]
   }
 
   draw() {
@@ -84,9 +90,13 @@ export class CheetahGame extends PhysicsGame {
     p.pop()
   }
 
+  getObservation(): CheetahObservationSpace {
+    return this.cheetah.getObservation()
+  }
+
   reset(): CheetahObservationSpace {
     super.reset()
-    const observation = this.cheetah.getObservation()
+    const observation = this.getObservation()
     this.cheetah.reset()
     return observation
   }
