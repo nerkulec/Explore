@@ -1,5 +1,5 @@
 import { P5Instance } from '../components/P5Wrapper'
-import { Capsule, Body, RotationalSpring, RevoluteConstraint, Plane, Circle, vec2 } from 'p2'
+import { Capsule, Body, RotationalSpring, RevoluteConstraint, Circle, vec2 } from 'p2'
 
 export interface Agent {
   draw(): void
@@ -18,12 +18,14 @@ abstract class PhysicsAgent implements Agent {
 export const drawBody = (p: P5Instance, body: Body) => {
   p.push()
   p.rectMode(p.CENTER)
-  p.translate(...body.position as [number, number])
+  p.translate(...body.position as v2)
   p.rotate(body.angle)
   for (const shape of body.shapes){
     if (shape instanceof Capsule) {
       p.fill(127)
       p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius, shape.radius)
+      // p.fill(0)
+      // p.circle(0, 0, 0.1)
     }
     if (shape instanceof Circle) {
       p.fill(230)
@@ -56,6 +58,7 @@ export class Cheetah extends PhysicsAgent {
   fleg_joints: [Body, Body, Body, Body]
   rleg_angles: [number, number, number]
   fleg_angles: [number, number, number]
+  starting_positions: v2[]
 
   constructor(p5: P5Instance) {
     super(p5)
@@ -134,21 +137,29 @@ export class Cheetah extends PhysicsAgent {
       localPivotB: [-leg_height/2, 0],
       collideConnected: false
     }))
-
+    // this.reset()
     this.bodies.push(this.torso, this.head, ...this.rleg, ...this.fleg)
+    this.starting_positions = this.bodies.map(body => [...body.position as v2])
   }
 
   reset() {
     // leg placement
+    for (let i=0; i<this.bodies.length; i++) {
+      const body = this.bodies[i]
+      body.position = [...this.starting_positions[i]]
+      body.angle = 0
+      body.velocity = [0, 0]
+      body.angularVelocity = 0
+    }
     for (let i=0; i<3; i++) {
-      const rleg_preankle = this.rleg_joints[i].position as [number, number]
-      const rleg_postankle = this.rleg_joints[i+1].position as [number, number]
-      const rleg_pre_pivot: [number, number] = [-this.lengths[i]/2, 0]
-      const rleg_post_pivot: [number, number] = [this.lengths[i+1]/2, 0]
-      const fleg_preankle = this.fleg_joints[i].position as [number, number]
-      const fleg_postankle = this.fleg_joints[i+1].position as [number, number]
-      const fleg_pre_pivot: [number, number] = [this.lengths[i]/2, 0]
-      const fleg_post_pivot: [number, number] = [-this.lengths[i+1]/2, 0]
+      const rleg_preankle = this.rleg_joints[i].position as v2
+      const rleg_postankle = this.rleg_joints[i+1].position as v2
+      const rleg_pre_pivot: v2 = [-this.lengths[i]/2, 0]
+      const rleg_post_pivot: v2 = [this.lengths[i+1]/2, 0]
+      const fleg_preankle = this.fleg_joints[i].position as v2
+      const fleg_postankle = this.fleg_joints[i+1].position as v2
+      const fleg_pre_pivot: v2 = [this.lengths[i]/2, 0]
+      const fleg_post_pivot: v2 = [-this.lengths[i+1]/2, 0]
       vec2.rotate(rleg_post_pivot, rleg_post_pivot, sum(this.rleg_angles.slice(0, i+1)))
       vec2.rotate(rleg_pre_pivot, rleg_pre_pivot, sum([0, ...this.rleg_angles].slice(0, i+1)))
       vec2.rotate(fleg_post_pivot, fleg_post_pivot, sum(this.fleg_angles.slice(0, i+1)))
@@ -168,14 +179,14 @@ export class Cheetah extends PhysicsAgent {
 
   getObservation(): CheetahObservationSpace {
     return [
-      Math.cos(2*Math.PI*this.torso.position[0]),
-      Math.sin(2*Math.PI*this.torso.position[0]),
+      Math.cos(2*Math.PI*this.torso.position[0]/10),
+      Math.sin(2*Math.PI*this.torso.position[0]/10),
       this.torso.position[1],
       this.torso.angle,
-      this.torso.angle - this.rleg[0].angle,
+      this.rleg[0].angle - this.torso.angle,
       this.rleg[1].angle-this.rleg[0].angle,
       this.rleg[2].angle-this.rleg[1].angle,
-      this.torso.angle - this.fleg[0].angle,
+      this.fleg[0].angle - this.torso.angle,
       this.fleg[1].angle-this.fleg[0].angle,
       this.fleg[2].angle-this.fleg[1].angle,
     ]
