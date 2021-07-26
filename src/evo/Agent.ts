@@ -52,7 +52,7 @@ export class Cheetah extends PhysicsAgent {
   fleg: [Body, Body, Body]
   head: Body
   torque_scale: number = 50
-  torque_coefs: CheetahActionSpace = [1, 1, 1, 1, 1, 0.2]
+  torque_coefs: CheetahActionSpace = [1, 1, 1, 1, 2, 0.5]
   lengths: [number, number, number, number]
   rleg_joints: [Body, Body, Body, Body]
   fleg_joints: [Body, Body, Body, Body]
