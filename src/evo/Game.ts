@@ -39,7 +39,7 @@ export class CheetahGame extends PhysicsGame {
     this.world = new World({
       gravity : [0, -9],
     })
-    this.world.defaultContactMaterial.friction = 20
+    this.world.defaultContactMaterial.friction = 5
     this.ground = new Body({
       mass: 0
     })

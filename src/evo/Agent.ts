@@ -52,7 +52,7 @@ export class Cheetah extends PhysicsAgent {
   fleg: [Body, Body, Body]
   head: Body
   torque_scale: number = 50
-  torque_coefs: CheetahActionSpace = [1, 1, 1, 1, 2, 0.5]
+  torque_coefs: CheetahActionSpace = [2, 1, 1, 1.2, 1, 0.5]
   lengths: [number, number, number, number]
   rleg_joints: [Body, Body, Body, Body]
   fleg_joints: [Body, Body, Body, Body]
@@ -74,14 +74,14 @@ export class Cheetah extends PhysicsAgent {
     this.torso = new Body({mass: length, position : [0, start_y]})
     this.torso.addShape(torso_shape)
     const head_shape = new Capsule({length: leg_height, radius: margin})
-    this.head = new Body({mass: leg_height, position : [length/2+leg_height/2, start_y]})
+    this.head = new Body({mass: 0.01, position : [length/2+leg_height/2, start_y]})
     this.head.addShape(head_shape)
     this.rleg = [] as any
     this.fleg = [] as any
     this.lengths = [length, leg_height, leg_height, leg_height/2]
     const positions = [0.5*leg_height, 1.5*leg_height, 2.25*leg_height]
     this.rleg_angles = [2.42, -Math.PI/2, Math.PI/2]
-    this.fleg_angles = [-2.2, Math.PI/2, 0]
+    this.fleg_angles = [-2.2, Math.PI/1.8, 0]
     const rleg_shapes = []
     const fleg_shapes = []
     for (let i=1; i<4; i++) {
