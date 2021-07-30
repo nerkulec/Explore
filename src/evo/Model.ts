@@ -1,7 +1,9 @@
 import * as tf from '@tensorflow/tfjs'
 
-export const getModel = (inputDim: number, units: number[]): tf.Sequential => {
-  const model = new tf.Sequential()
+export type MyModel = tf.Sequential & {json: string}
+
+export const getModel = (inputDim: number, units: number[]): MyModel=> {
+  const model = new tf.Sequential() as MyModel
   model.add(tf.layers.dense({
     inputDim,
     units: units[0],
@@ -13,6 +15,7 @@ export const getModel = (inputDim: number, units: number[]): tf.Sequential => {
       activation: i === units.length-2 ? 'tanh' : 'relu'
     }))
   }
+  model.json = model.toJSON(0, false) as string
 
   return model
 }

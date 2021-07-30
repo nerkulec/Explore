@@ -6,7 +6,7 @@ export interface Game {
   reset(): void
   update(action: number[]): void
   getObservation(): number[]
-  draw(): void
+  draw(...options: any): void
   reward: number
 }
 
@@ -61,30 +61,35 @@ export class CheetahGame extends PhysicsGame {
     this.reward = this.cheetah.torso.position[0]
   }
 
-  draw() {
+  draw(draw_background = true) {
     const p = this.p5
     const scale = 180
     p.push()
     p.fill(191)
     p.noStroke()
-    p.rect(-p.width/2, -p.height/2, p.width, p.height)
+    if (draw_background)
+      p.rect(0, 0, p.width, p.height)
+    p.translate(p.width/2, p.height/2)
     p.scale(1, -1)
     p.fill(230)
     p.rectMode(p.CORNER)
-    p.rect(-p.width/2, -scale, p.width, -scale)
+    if (draw_background)
+      p.rect(-p.width/2, -scale, p.width, -scale)
     p.scale(scale, scale)
     p.translate(0, -1)
     const cheetah_x = this.cheetah.torso.position[0]
     p.translate(-cheetah_x, 0)
-    p.fill(0)
-    const start = Math.floor(cheetah_x)+1
-    for (let i=0; i<p.width/100; i+=1) {
-      const x = -p.width/(2*scale)+i+start
-      let h = 0.2
-      if (Math.floor(x)%10 === 0)
-        h = 0.4
-      if (x-cheetah_x+0.1<p.width/(2*scale))
-        p.rect(x, 0, 0.1, -h)
+    if (draw_background) {
+      p.fill(0)
+      const start = Math.floor(cheetah_x)+1
+      for (let i=0; i<p.width/100; i+=1) {
+        const x = -p.width/(2*scale)+i+start
+        let h = 0.2
+        if (Math.floor(x)%10 === 0)
+          h = 0.4
+        if (x-cheetah_x+0.1<p.width/(2*scale))
+          p.rect(x, 0, 0.1, -h)
+      }
     }
     this.cheetah.draw()
     p.pop()
