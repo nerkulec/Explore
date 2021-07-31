@@ -2,14 +2,14 @@ import { CheetahGame, Game } from "../evo/Game"
 import { getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
-import { getEvolutionInfo, mutate, EvolutionInfo, crossover } from "../evo/Evolution"
+import { getEvolutionInfo, mutate, crossover } from "../evo/Evolution"
 
 type color = [number, number, number, number]
 const survivor_green: color = [0, 255, 0, 63]
 
 const sketch = (p: P5Instance) => {
   let n_agents = 36
-  let n_visible_agents = 36
+  // let n_visible_agents = 36
   let ep_len = 600/8
   let loop_time = 4
   let frames_elites = 90
@@ -42,7 +42,6 @@ const sketch = (p: P5Instance) => {
 
   function* gamesIter() {
     const w = Math.ceil(Math.sqrt(n_agents))
-    const margin = 0.5
     for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
         const i = y*w+x
@@ -198,7 +197,7 @@ const sketch = (p: P5Instance) => {
   }
 
   p.setup = () => {
-    p.createCanvas(1080, 720)
+    p.createCanvas(1080*0.8, 720*0.8)
     p.frameRate(60)
     games = []
     models = []
