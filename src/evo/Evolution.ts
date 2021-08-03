@@ -10,12 +10,23 @@ const randomChoice = <T>(elems: T[]): T => {
   return elems[Math.floor(Math.random()*elems.length)]
 }
 
-export const tournamentSelection = (rewards: number[], numElites: number): [number[], [number, number][]] => {
-  const rank = argsort(rewards)
+export const permute = <T>(elems: T[], rank: number[]) => {
+  const permuted_elems: T[] = []
+  for (const i of rank) {
+    permuted_elems.push(elems[i])
+  }
+  for (let i=0; i<elems.length; i++) {
+    elems[i] = permuted_elems[i]
+  }
+}
+
+export const tournamentSelection = (rewards: number[], numElites: number, numToSelect: number):
+  [number[], [number, number][], number[]] => {
+  const rank = argsort(rewards).reverse()
   const n = rewards.length
-  const winners = rank.slice(n-numElites).reverse()
+  const winners = rank.slice(0, numElites)
   const matchups: [number, number][] = []
-  for (let i=0; i<n-numElites; i++) {
+  while (winners.length < numToSelect) {
     const a = Math.floor(Math.random()*n)
     const b = Math.floor(Math.random()*n)
     if (rewards[a] > rewards[b]) {
@@ -26,7 +37,7 @@ export const tournamentSelection = (rewards: number[], numElites: number): [numb
       matchups.push([b, a])
     }
   }
-  return [winners, matchups]
+  return [winners, matchups, rank]
 }
 
 export const mutate = (model: MyModel, mutation_rate = 0.1) => {
@@ -84,10 +95,12 @@ export type EvolutionInfo = {
   losers: number[],
   matchups: [number, number][]
   parents: [number, number, number][], // child, father, mother
+  rank: number[],
+  rewards: (number | null)[]
 }
 
 export const getEvolutionInfo = (rewards: number[], models: MyModel[], numElites = 4): EvolutionInfo => {
-  const [selection, matchups] = tournamentSelection(rewards, numElites)
+  const [selection, matchups, rank] = tournamentSelection(rewards, numElites, models.length/2)
   const elites = selection.slice(0, numElites)
   const winners = new Set(selection)
   const winnersList = [...winners]
@@ -105,10 +118,8 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], numElites
     winners: winnersList,
     losers,
     matchups,
-    parents
+    parents,
+    rank,
+    rewards
   }
 }
-
-// export const evolve = (models: MyModel[], {elites}: EvolutionInfo) => {
-  
-// }
