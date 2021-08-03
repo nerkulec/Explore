@@ -15,17 +15,12 @@ const sketch = (p: P5Instance) => {
   let Environment = CheetahGame
   let n_agents = 36
   let ep_len = 600
-  let loop_time = 30
   let anim_time_coef = 1
   let games: Game[]
   let models: MyModel[]
-  let ep = 0
   let gen_num = 0
   let rewards: number[] = []
   let animation_queue: (Generator | Function)[] = []
-  let showRewards = false
-  let drawGames = true
-  let doUpdate = true
   let anims: any
 
   p.setup = () => {
