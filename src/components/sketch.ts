@@ -3,7 +3,7 @@ import { envString, getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
-import { getAnimations, setLoop } from "./animations"
+import { getAnimations } from "./animations"
 
 const sketch = (p: P5Instance) => {
   let env: envString = 'Cheetah'
@@ -84,14 +84,13 @@ const sketch = (p: P5Instance) => {
 
   function* rolloutAnimation(rank?: number[]) {
     if (rank) {
-      permute(games, rank)
       permute(models, rank)
     }
     for (const game of games) {
       game.reset()
     }
     for (let frame=0; frame<ep_len; frame++) {
-      setLoop(update, 10)
+      update()
       // eslint-disable-next-line
       for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
 

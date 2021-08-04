@@ -147,9 +147,15 @@ export class Cheetah extends PhysicsAgent {
     for (let i=0; i<this.bodies.length; i++) {
       const body = this.bodies[i]
       body.position = [...this.starting_positions[i]]
+      body.previousPosition = [...this.starting_positions[i]]
       body.angle = 0
+      body.previousAngle = 0
       body.velocity = [0, 0]
       body.angularVelocity = 0
+      body.vlambda = vec2.create()
+      body.wlambda = 0 as any
+      body.force = vec2.create()
+      body.angularForce = 0
     }
     for (let i=0; i<3; i++) {
       const rleg_preankle = this.rleg_joints[i].position as v2

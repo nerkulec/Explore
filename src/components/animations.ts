@@ -15,13 +15,6 @@ const frames_permutation = 90
 const frames_fade_in = 20
 const margin = 0.5
 
-export const setLoop = (cb: () => Promise<any>, ms: number, original = true) => {
-  if (ms < 0)
-    return
-  const start = performance.now()
-  cb().then(() => setLoop(cb, ms-performance.now()+start, false))
-}
-
 export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewards}:
   {p: P5Instance, n_agents: number, anim_time_coef: number, models: MyModel[], games: Game[], rewards: number[]}) => {
 
@@ -55,7 +48,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
           const r = rewards[i]
           if (r !== null) {
             p.textSize(120)
-            p.text(r.toFixed(1), p.width/2, 130)
+            p.text(r.toFixed(2), p.width/2, 130)
           }
         }
         yield i
@@ -91,7 +84,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
         const r = rewards[i]
         if (r !== null) {
           p.textSize(120)
-          p.text(r.toFixed(1), p.width/2, 130)
+          p.text(r.toFixed(2), p.width/2, 130)
         }
         p.pop()
       }
