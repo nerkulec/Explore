@@ -43,7 +43,7 @@ export default function Navbar({
         <span>Animation</span>
         <div className='navbar-box'>
           <label>Animation time</label>
-          <input type='range' min='0' max='100' value={animTime} onChange={changer(setAnimTime)}/>
+          <input type='range' min='0' max='200' value={animTime} onChange={changer(setAnimTime)}/>
           <output>{animTime}</output>%
         </div>
       </div>

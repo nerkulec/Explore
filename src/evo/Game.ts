@@ -106,3 +106,7 @@ export class CheetahGame extends PhysicsGame {
     return observation
   }
 }
+
+export const environments = {
+  'Cheetah': CheetahGame
+}

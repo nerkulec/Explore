@@ -6,7 +6,7 @@ import sketch from "./sketch"
 
 function App() {
   const [env, setEnv] = useState('Cheetah')
-  const [epLen, setEpLen] = useState(600)
+  const [epLen, setEpLen] = useState(200)
   const [nAgents, setNAgents] = useState(36)
   const [animTime, setAnimTime] = useState(100)
   return <>

@@ -1,8 +1,18 @@
 import * as tf from '@tensorflow/tfjs'
+import { CheetahGame } from './Game'
 
 export type MyModel = tf.Sequential & {json: string}
 
-export const getModel = (inputDim: number, units: number[]): MyModel=> {
+export type envString = 'Cheetah'
+export const getModel = (env: envString): MyModel => {
+  if (env === 'Cheetah') {
+    return createModel(CheetahGame.obs_size, [32, CheetahGame.act_size])
+  } else {
+    throw new Error(`Unrecodnized env name: ${env}`)
+  }
+}
+
+export const createModel = (inputDim: number, units: number[]): MyModel => {
   const model = new tf.Sequential() as MyModel
   model.add(tf.layers.dense({
     inputDim,

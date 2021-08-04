@@ -1,17 +1,12 @@
 import { CheetahGame, Game } from "../evo/Game"
-import { getModel, MyModel } from "../evo/Model"
+import { envString, getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
-import { getEvolutionInfo } from "../evo/Evolution"
+import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations, setLoop } from "./animations"
 
-type envString = 'Cheetah'
-const environments = {
-  'Cheetah': CheetahGame
-}
-
 const sketch = (p: P5Instance) => {
-  let env = 'Cheetah'
+  let env: envString = 'Cheetah'
   let Environment = CheetahGame
   let n_agents = 36
   let ep_len = 600
@@ -29,7 +24,7 @@ const sketch = (p: P5Instance) => {
     games = []
     models = []
     for (let i=0; i<n_agents; i++) {
-      models.push(getModel(CheetahGame.obs_size, [64, CheetahGame.act_size]))
+      models.push(getModel(env))
       const game = new CheetahGame(p)
       game.reset()
       games.push(game)
@@ -46,9 +41,8 @@ const sketch = (p: P5Instance) => {
       env = newEnv
       games = []
       models = []
-      Environment = environments[env as envString]
       for (let i=0; i<n_agents; i++) {
-        models.push(getModel(Environment.obs_size, [64, Environment.act_size]))
+        models.push(getModel(env))
         const game = new Environment(p)
         game.reset()
         games.push(game)
@@ -60,7 +54,7 @@ const sketch = (p: P5Instance) => {
     if (nAgents !== n_agents) {
       if (nAgents > n_agents) {
         for (let i=0; i<nAgents-n_agents; i++) {
-          models.push(getModel(Environment.obs_size, [64, Environment.act_size]))
+          models.push(getModel(env))
           const game = new Environment(p)
           game.reset()
           games.push(game)
@@ -88,10 +82,18 @@ const sketch = (p: P5Instance) => {
     }))
   }
 
-  function* rolloutAnimation() {
+  function* rolloutAnimation(rank?: number[]) {
+    if (rank) {
+      permute(games, rank)
+      permute(models, rank)
+    }
+    for (const game of games) {
+      game.reset()
+    }
     for (let frame=0; frame<ep_len; frame++) {
       setLoop(update, 10)
-      for (const i of anims.gamesIter(games.map(g => g.reward))) {}
+      // eslint-disable-next-line
+      for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
 
       p.text(`frame: ${frame}`, p.width*0.9, 42)
       yield
@@ -106,7 +108,7 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims.eliminationAnimation(evolutionInfo))
     animation_queue.push(anims.crossoverAnimation(evolutionInfo))
     animation_queue.push(anims.mutationAnimation(evolutionInfo))
-    animation_queue.push(rolloutAnimation())
+    animation_queue.push(rolloutAnimation(evolutionInfo.rank))
     console.log(`generation ${gen_num}`)
   }
 

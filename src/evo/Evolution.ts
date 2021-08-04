@@ -11,13 +11,13 @@ const randomChoice = <T>(elems: T[]): T => {
 }
 
 export const permute = <T>(elems: T[], rank: number[]) => {
-  const permuted_elems: T[] = []
-  for (const i of rank) {
-    permuted_elems.push(elems[i])
-  }
+  const copy: T[] = [...elems]
   for (let i=0; i<elems.length; i++) {
-    elems[i] = permuted_elems[i]
+    elems[i] = copy[rank[i]]
   }
+  // for (let i=0; i<elems.length; i++) {
+  //   elems[i] = permuted_elems[i]
+  // }
 }
 
 export const tournamentSelection = (rewards: number[], numElites: number, numToSelect: number):
@@ -25,15 +25,18 @@ export const tournamentSelection = (rewards: number[], numElites: number, numToS
   const rank = argsort(rewards).reverse()
   const n = rewards.length
   const winners = rank.slice(0, numElites)
+  const winners_set = new Set(winners)
   const matchups: [number, number][] = []
-  while (winners.length < numToSelect) {
+  while (winners_set.size < numToSelect) {
     const a = Math.floor(Math.random()*n)
     const b = Math.floor(Math.random()*n)
     if (rewards[a] > rewards[b]) {
       winners.push(a)
+      winners_set.add(a)
       matchups.push([a, b])
     } else {
       winners.push(b)
+      winners_set.add(b)
       matchups.push([b, a])
     }
   }
@@ -96,11 +99,13 @@ export type EvolutionInfo = {
   matchups: [number, number][]
   parents: [number, number, number][], // child, father, mother
   rank: number[],
+  inv_rank: number[],
   rewards: (number | null)[]
 }
 
 export const getEvolutionInfo = (rewards: number[], models: MyModel[], numElites = 4): EvolutionInfo => {
   const [selection, matchups, rank] = tournamentSelection(rewards, numElites, models.length/2)
+  const inv_rank = rank.map((_, i) => rank.indexOf(i))
   const elites = selection.slice(0, numElites)
   const winners = new Set(selection)
   const winnersList = [...winners]
@@ -120,6 +125,7 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], numElites
     matchups,
     parents,
     rank,
+    inv_rank,
     rewards
   }
 }

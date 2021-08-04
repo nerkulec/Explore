@@ -1,4 +1,4 @@
-import { crossover, EvolutionInfo, mutate, permute } from "../evo/Evolution"
+import { crossover, EvolutionInfo, mutate } from "../evo/Evolution"
 import { Game } from "../evo/Game"
 import { MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
@@ -7,9 +7,9 @@ export type color = [number, number, number, number]
 export const survivor_green: color = [0, 255, 0, 63]
 
 const frames_elites = 90
-const frames_per_pair = 40
+const frames_per_pair = 30
 const frames_losers = 90
-const frames_per_crossover = 40
+const frames_per_crossover = 30
 const frames_mutation = 90
 const frames_permutation = 90
 const frames_fade_in = 20
@@ -39,15 +39,17 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     p.scale(scale, scale)
   }
 
-  function* gamesIter(rewards?: (number | null)[]) {
+  function* gamesIter(rank?: number[], rewards?: (number | null)[]) {
     for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
-        const i = y*w+x
+        let i = y*w+x
         if (i>=n_agents)
           return
         
         p.push()
         transformSubgame(x, y)
+        if (rank)
+          i = rank[i]
         games[i].draw()
         if (rewards) {
           const r = rewards[i]
@@ -77,7 +79,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
   function* permutationAnimation({rank, rewards}: EvolutionInfo) {
     const text_animation = textAnimation('PERMUTATION', frames_permutation*anim_time_coef)
     const prev_pos = games.map((_, i) => getXY(i))
-    const post_pos = games.map((_, i) => getXY(rank[i]))
+    const post_pos = games.map((_, i) => getXY(rank.indexOf(i)))
     for (let frame=0; frame<frames_permutation*anim_time_coef; frame++) {
       const k = frame/(frames_permutation*anim_time_coef-1)
       for (let i=0; i<rank.length; i++) {
@@ -96,23 +98,18 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
       text_animation.next()
       yield
     }
-    permute(rewards, rank)
-    permute(games, rank)
-    permute(models, rank)
   }
 
-  function* elitesAnimation({elites, rewards}: EvolutionInfo) {
+  function* elitesAnimation({elites, rewards, rank}: EvolutionInfo) {
     const text_animation = textAnimation('ELITISM', frames_elites*anim_time_coef)
     for (let frame=0; frame<frames_elites*anim_time_coef; frame++) {
-      const k = frame/(frames_elites*anim_time_coef-1)-0.5
-      if (k>0) {
-        for (const i of gamesIter(rewards)) {
-          if (elites.includes(i)) {
-            const elite_color: color = [...survivor_green]
-            elite_color[3] *= k
-            p.fill(...elite_color)
-            p.rect(0, 0, p.width, p.height)
-          }
+      const k = frame/(frames_elites*anim_time_coef-1)
+      for (const i of gamesIter(rank, rewards)) {
+        if (elites.includes(i)) {
+          const elite_color: color = [...survivor_green]
+          elite_color[3] *= k
+          p.fill(...elite_color)
+          p.rect(0, 0, p.width, p.height)
         }
       }
       text_animation.next()
@@ -120,14 +117,16 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     }
   }
 
-  function* tournamentSelectionAnimation({matchups, elites, rewards}: EvolutionInfo) {
+  function* tournamentSelectionAnimation({matchups, elites, rewards, rank}: EvolutionInfo) {
     const text_animation = textAnimation('SELECTION', frames_per_pair*anim_time_coef*matchups.length)
     const winners_so_far: number[] = [...elites]
     for (const matchup of matchups) {
+      if (winners_so_far.includes(matchup[0]))
+        continue
       for (let frame=0; frame<frames_per_pair*anim_time_coef; frame++) {
-        for (const i of gamesIter(rewards)) {
+        for (const i of gamesIter(rank, rewards)) {
           if (matchup.includes(i)) {
-            if (frame<frames_per_pair/2) {
+            if (frame<frames_per_pair*0.7) {
               continue
             } else if (matchup[0] === i) {
               p.fill(0, 255, 0, 127)
@@ -148,13 +147,13 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     }
   }
 
-  function* eliminationAnimation({losers, rewards}: EvolutionInfo) {
+  function* eliminationAnimation({losers, rewards, rank}: EvolutionInfo) {
     const text_animation = textAnimation('ELIMINATION', frames_losers*anim_time_coef)
     for (const i of losers) {
       rewards[i] = null
     }
     for (let frame=0; frame<frames_losers*anim_time_coef; frame++) {
-      for (const i of gamesIter(rewards)) {
+      for (const i of gamesIter(rank, rewards)) {
         if (losers.includes(i)) {
           p.fill(255, 255, 255, 255*frame/(frames_losers*anim_time_coef-1))
         } else {
@@ -167,15 +166,16 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     }
   }
 
-  function* crossoverAnimation({losers, parents, rewards}: EvolutionInfo) {
+  function* crossoverAnimation({losers, parents, rewards, rank, inv_rank}: EvolutionInfo) {
     const text_animation = textAnimation('CROSSOVER', frames_per_crossover*anim_time_coef*parents.length)
     const replaced: number[] = []
+    parents.sort(([c1], [c2]) => inv_rank[c1]-inv_rank[c2])
     for (const [child, father, mother] of parents) {
-      const [cx, cy] = getXY(child)
-      const [fx, fy] = getXY(father)
-      const [mx, my] = getXY(mother)
+      const [cx, cy] = getXY(rank.indexOf(child))
+      const [fx, fy] = getXY(rank.indexOf(father))
+      const [mx, my] = getXY(rank.indexOf(mother))
       for (let frame=0; frame<frames_per_crossover*anim_time_coef; frame++) {
-        for (const i of gamesIter(rewards)) {
+        for (const i of gamesIter(rank, rewards)) {
           if (losers.includes(i) && !replaced.includes(i)) {
             p.fill(255, 255, 255, 255)
             p.rect(0, 0, p.width, p.height)
@@ -204,13 +204,13 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     }
   }
 
-  function* mutationAnimation({elites}: EvolutionInfo) {
+  function* mutationAnimation({elites, rank}: EvolutionInfo) {
     const text_animation = textAnimation('MUTATION', frames_mutation*anim_time_coef)
     const n = models.length
     for (let frame=0; frame<frames_mutation*anim_time_coef; frame++) {
       const k = frame/(frames_mutation*anim_time_coef-1)
       p.fill(0, 0, 255, 127*(1-Math.cos(k*2*Math.PI)/2))
-      for (const i of gamesIter()) {
+      for (const i of gamesIter(rank)) {
         if (!elites.includes(i)) {
           p.rect(0, 0, p.width, p.height)
         }
