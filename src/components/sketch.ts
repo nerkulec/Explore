@@ -11,6 +11,7 @@ const sketch = (p: P5Instance) => {
   let n_agents = 36
   let ep_len = 600
   let anim_time_coef = 1
+  let mutation_rate = 0.1
   let games: Game[]
   let models: MyModel[]
   let gen_num = 0
@@ -32,11 +33,11 @@ const sketch = (p: P5Instance) => {
     const font = p.loadFont("OpenSans-Regular.ttf")
     p.textFont(font)
     p.textAlign(p.CENTER)
-    anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards})
+    anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards, mutation_rate})
     animation_queue.push(rolloutAnimation())
   }
 
-  p.updateWithProps = ({env: newEnv, epLen, nAgents, animTime}) => {
+  p.updateWithProps = ({env: newEnv, epLen, nAgents, animTime, mutationRate}) => {
     if (newEnv !== env) {
       env = newEnv
       games = []
@@ -68,7 +69,10 @@ const sketch = (p: P5Instance) => {
     if (animTime !== anim_time_coef) {
       anim_time_coef = animTime/100
     }
-    anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards})
+    if (mutationRate !== mutation_rate) {
+      mutation_rate = mutationRate
+    }
+    anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards, mutation_rate})
   }
 
   const update = async () => {

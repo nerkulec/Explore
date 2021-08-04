@@ -15,8 +15,9 @@ const frames_permutation = 90
 const frames_fade_in = 20
 const margin = 0.5
 
-export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewards}:
-  {p: P5Instance, n_agents: number, anim_time_coef: number, models: MyModel[], games: Game[], rewards: number[]}) => {
+export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutation_rate}:
+  {p: P5Instance, n_agents: number, anim_time_coef: number, models: MyModel[], games: Game[], rewards: number[],
+  mutation_rate: number}) => {
 
   const w = Math.ceil(Math.sqrt(n_agents))
   const dx = p.width/w
@@ -213,7 +214,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, rewar
     }
     for (let i=0; i<n; i++) {
       if (!elites.includes(i)) {
-        mutate(models[i])
+        mutate(models[i], mutation_rate)
       }
     }
   }

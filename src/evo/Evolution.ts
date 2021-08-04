@@ -53,14 +53,6 @@ export const mutate = (model: MyModel, mutation_rate = 0.1) => {
   }
 }
 
-// export const copyModel = async (model: MyModel) => {
-//   const newModel = await tf.models.modelFromJSON(model.json as any)
-//   for (let i=0; i<model.layers.length; i++) {
-//     newModel.layers[i].setWeights(model.layers[i].getWeights())
-//   }
-//   return newModel as MyModel
-// }
-
 export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {
   const child = await tf.models.modelFromJSON(father.json as any) as MyModel
   for (let i=0; i<child.layers.length; i++) {

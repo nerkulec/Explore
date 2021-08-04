@@ -7,12 +7,15 @@ const changer = (setter: (v: any) => void) =>
 
 
 export default function Navbar({
-  env, setEnv, epLen, setEpLen, nAgents, setNAgents, animTime, setAnimTime
+  env, setEnv, epLen, setEpLen, nAgents, setNAgents, animTime, setAnimTime,
+  mutationRate, setMutationRate, mutationRateValues
 }: {
   env: string, setEnv: (env: string) => void,
   epLen: number, setEpLen: (len: number) => void,
   nAgents: number, setNAgents: (len: number) => void,
   animTime: number, setAnimTime: (len: number) => void,
+  mutationRate: number, setMutationRate: (len: number) => void,
+  mutationRateValues: number[]
 }): ReactElement {
   const element = (
     <div className='navbar'>
@@ -37,6 +40,9 @@ export default function Navbar({
           <label># of agents</label>
           <input type='range' min='4' max='100' value={nAgents} onChange={changer(setNAgents)}/>
           <output>{nAgents}</output>
+          <label>Mutation rate</label>
+          <input type='range' min='0' max='11' value={mutationRate} onChange={changer(setMutationRate)}/>
+          <output>{mutationRateValues[mutationRate]}</output>
         </div>
       </div>
       <div className='navbar-column'>
