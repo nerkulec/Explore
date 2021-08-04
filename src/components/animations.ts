@@ -58,6 +58,13 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutat
     }
   }
 
+  function* pauseAnimation({rank, rewards}: EvolutionInfo, frames = 20) {
+    for (let frame=0; frame<frames*anim_time_coef; frame++) {
+      for (const i of gamesIter(rank, rewards)) {}
+      yield
+    }
+  }
+
   function* textAnimation(text: string, frames: number) {
     for (let frame=0; frame<frames*anim_time_coef; frame++) {
       const k = frame/(frames_fade_in*anim_time_coef-1)
@@ -174,7 +181,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutat
             p.fill(255, 255, 255, 255)
             p.rect(0, 0, p.width, p.height)
           } else if (i !== father && i !== mother) {
-            p.fill(...survivor_green)
+            p.fill(255, 255, 255, 127)
             p.rect(0, 0, p.width, p.height)
           }
         }
@@ -224,6 +231,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutat
     transformSubgame,
     gamesIter,
     textAnimation,
+    pauseAnimation,
     elitesAnimation,
     tournamentSelectionAnimation,
     eliminationAnimation,

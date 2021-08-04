@@ -16,7 +16,8 @@ const sketch = (p: P5Instance) => {
   let models: MyModel[]
   let gen_num = 0
   let rewards: number[] = []
-  let animation_queue: (Generator | Function)[] = []
+  let animation_queue: ((anims: any) => Generator)[] = []
+  let current_animation: Generator | null
   let anims: any
 
   p.setup = () => {
@@ -34,7 +35,7 @@ const sketch = (p: P5Instance) => {
     p.textFont(font)
     p.textAlign(p.CENTER)
     anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards, mutation_rate})
-    animation_queue.push(rolloutAnimation())
+    animation_queue.push(() => rolloutAnimation())
   }
 
   p.updateWithProps = ({env: newEnv, epLen, nAgents, animTime, mutationRate}) => {
@@ -105,13 +106,14 @@ const sketch = (p: P5Instance) => {
     gen_num += 1
     rewards = games.map(game => game.reward)
     const evolutionInfo = getEvolutionInfo(rewards, models)
-    animation_queue.push(anims.permutationAnimation(evolutionInfo))
-    animation_queue.push(anims.elitesAnimation(evolutionInfo))
-    animation_queue.push(anims.tournamentSelectionAnimation(evolutionInfo))
-    animation_queue.push(anims.eliminationAnimation(evolutionInfo))
-    animation_queue.push(anims.crossoverAnimation(evolutionInfo))
-    animation_queue.push(anims.mutationAnimation(evolutionInfo))
-    animation_queue.push(rolloutAnimation(evolutionInfo.rank))
+    animation_queue.push(anims => anims.permutationAnimation(evolutionInfo))
+    animation_queue.push(anims => anims.elitesAnimation(evolutionInfo))
+    animation_queue.push(anims => anims.tournamentSelectionAnimation(evolutionInfo))
+    animation_queue.push(anims => anims.eliminationAnimation(evolutionInfo))
+    animation_queue.push(anims => anims.crossoverAnimation(evolutionInfo))
+    animation_queue.push(anims => anims.mutationAnimation(evolutionInfo))
+    animation_queue.push(() => rolloutAnimation(evolutionInfo.rank))
+    animation_queue.push(anims => anims.pauseAnimation(evolutionInfo))
     console.log(`generation ${gen_num}`)
   }
 
@@ -119,15 +121,22 @@ const sketch = (p: P5Instance) => {
     p.background(255)
     p.strokeWeight(0)
     p.translate(-p.width/2, -p.height/2)
-    while (animation_queue.length > 0) {
-      const animation = animation_queue[0]
-      if (typeof animation === 'function') {
-        animation()
-        animation_queue.shift()
-      } else if (animation.next().done) {
-        animation_queue.shift()
-      } else {
-        break
+    let drawn = false
+    while (!drawn) {
+      if (current_animation) {
+        if (current_animation.next().done) {
+          animation_queue.shift()
+          current_animation = null
+        } else {
+          drawn = true
+        }
+      }
+      if (!current_animation) {
+        if (animation_queue.length > 0) {
+          current_animation = animation_queue[0](anims)
+        } else {
+          drawn = true
+        }
       }
     }
     p.fill(0)
