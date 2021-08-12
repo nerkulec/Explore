@@ -23,9 +23,13 @@ export const drawBody = (p: P5Instance, body: Body) => {
   for (const shape of body.shapes){
     if (shape instanceof Capsule) {
       p.fill(127)
-      p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius)//, shape.radius)
-      // p.fill(0)
-      // p.circle(0, 0, 0.1)
+      if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
+        p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius)
+        // p.fill(0)
+        // p.circle(0, 0, 0.1)
+      } else {
+        p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius, shape.radius)
+      }
     }
     if (shape instanceof Circle) {
       p.fill(230)

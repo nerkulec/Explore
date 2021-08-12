@@ -30,7 +30,7 @@ export default function Navbar({
             <option>Elephant</option>
           </select>
           <label>Episode length</label>
-          <input type='range' min='60' max='600' value={epLen} onChange={changer(setEpLen)}/>
+          <input type='range' min='20' max='600' step='20' value={epLen} onChange={changer(setEpLen)}/>
           <output>{epLen}</output>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function Navbar({
           <input type='range' min='4' max='100' value={nAgents} onChange={changer(setNAgents)}/>
           <output>{nAgents}</output>
           <label>Mutation rate</label>
-          <input type='range' min='0' max='11' value={mutationRate} onChange={changer(setMutationRate)}/>
+          <input type='range' min='0' max='12' value={mutationRate} onChange={changer(setMutationRate)}/>
           <output>{mutationRateValues[mutationRate]}</output>
         </div>
       </div>

@@ -19,9 +19,14 @@ const sketch = (p: P5Instance) => {
   let animation_queue: ((anims: any) => Generator)[] = []
   let current_animation: Generator | null
   let anims: any
+  let frame = 0
+  let framerate = 60
+  let simrate = 30
+
+  let append_rewards: (rewards: number[]) => void
 
   p.setup = () => {
-    p.createCanvas(1080, 720, p.WEBGL)
+    p.createCanvas(1080, 720, p.P2D)
     p.frameRate(60)
     games = []
     models = []
@@ -38,7 +43,9 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(() => rolloutAnimation())
   }
 
-  p.updateWithProps = ({env: newEnv, epLen, nAgents, animTime, mutationRate}) => {
+  p.updateWithProps = ({env: newEnv, epLen, nAgents, animTime, mutationRate,
+    appendRewards
+  }) => {
     if (newEnv !== env) {
       env = newEnv
       games = []
@@ -74,6 +81,7 @@ const sketch = (p: P5Instance) => {
       mutation_rate = mutationRate
     }
     anims = getAnimations({p, n_agents, anim_time_coef, models, games, rewards, mutation_rate})
+    append_rewards = appendRewards
   }
 
   const update = async () => {
@@ -86,25 +94,36 @@ const sketch = (p: P5Instance) => {
       games[i].update((await action)[0])
     }))
   }
+  const sleep = (t: number) => new Promise(resolve => setTimeout(resolve, t))
+  const rolloutLoop = async () => {
+    for (frame=0; frame<ep_len; frame++) {
+      let start = performance.now()
+      await Promise.all([update(), sleep(0)])
+      const stop = performance.now()
+      const simrate_ = 1000/(stop-start)
+      simrate = 0.9*simrate + 0.1*simrate_
+      start = stop
+    }
+  }
 
   function* rolloutAnimation(rank?: number[]) {
     if (rank) {
       permute(models, rank)
     }
-    for (const game of games) {
-      game.reset()
-    }
-    for (let frame=0; frame<ep_len; frame++) {
-      update()
+    let finished = false
+    rolloutLoop().then(() => finished = true)
+    while (!finished) {
       // eslint-disable-next-line
       for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
 
-      p.text(`frame: ${frame}`, p.width*0.9, 42)
+      p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 42)
+      p.text(`frame: ${frame}`, p.width*0.9, 63)
       yield
     }
 
     gen_num += 1
     rewards = games.map(game => game.reward)
+    append_rewards(rewards)
     const evolutionInfo = getEvolutionInfo(rewards, models)
     animation_queue.push(anims => anims.permutationAnimation(evolutionInfo))
     animation_queue.push(anims => anims.elitesAnimation(evolutionInfo))
@@ -113,14 +132,16 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims => anims.crossoverAnimation(evolutionInfo))
     animation_queue.push(anims => anims.mutationAnimation(evolutionInfo))
     animation_queue.push(() => rolloutAnimation(evolutionInfo.rank))
-    animation_queue.push(anims => anims.pauseAnimation(evolutionInfo))
+    // animation_queue.push(anims => anims.pauseAnimation(evolutionInfo))
     console.log(`generation ${gen_num}`)
   }
 
   p.draw = () => {
     p.background(255)
     p.strokeWeight(0)
-    p.translate(-p.width/2, -p.height/2)
+    if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
+      p.translate(-p.width/2, -p.height/2)
+    }
     let drawn = false
     while (!drawn) {
       if (current_animation) {
@@ -141,7 +162,8 @@ const sketch = (p: P5Instance) => {
     }
     p.fill(0)
     p.textSize(20)
-    p.text(`framerate: ${p.frameRate().toFixed(2)}`, p.width*0.91, 21)
+    framerate = 0.95*framerate+0.05*p.frameRate()
+    p.text(`framerate: ${framerate.toFixed(1)}`, p.width*0.91, 21)
   }
 }
 

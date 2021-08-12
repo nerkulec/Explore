@@ -1,6 +1,6 @@
 import p5 from "p5"
 import deepEqual from "deep-equal"
-import React, { FC, memo, useEffect, useState } from "react"
+import React, { createRef, FC, memo, useEffect, useState } from "react"
 import { useCallback } from "react"
 
 export interface SketchProps {
@@ -28,17 +28,19 @@ const P5WrapperComponent: FC<P5WrapperProps> = ({
   children,
   ...props
 }) => {
+  const wrapper = createRef<HTMLDivElement>()
   const [instance, setInstance] = useState<P5Instance>()
 
   useEffect(() => {
-    instance?.updateWithProps?.(props)
-  }, [props, instance])
-
-  const wrapper = useCallback(node => {
-    if (!node || node.current === null) return
-    const canvas = createCanvas(sketch, node.current)
+    if (wrapper.current === null) return
+    instance?.remove()
+    const canvas = createCanvas(sketch, wrapper.current)
     setInstance(canvas)
-  }, [sketch])
+  }, [])
+
+  useEffect(() => {
+    instance?.updateWithProps?.(props)
+  })
 
   return <div ref={wrapper}>{children}</div>
 }

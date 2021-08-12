@@ -1,0 +1,29 @@
+text {
+  font-family: sans-serif;
+}
+
+.line-path {
+  fill: none;
+  stroke: rgb(53, 107, 177);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.tick text {
+  font-size: 1em;
+  fill: #635F5D;
+}
+
+.tick line {
+  stroke: #C0C0BB;
+}
+
+.axis-label {
+  font-size: 1em;
+  fill: #8E8883;
+}
+
+.title {
+  font-size: 1em;
+  fill: #635F5D;
+}

@@ -165,6 +165,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutat
       text_animation.next()
       yield
     }
+    games.forEach(g => g.reset())
   }
 
   function* crossoverAnimation({losers, parents, rewards, rank, inv_rank}: EvolutionInfo) {
@@ -199,7 +200,7 @@ export const getAnimations = ({p, n_agents, anim_time_coef, models, games, mutat
       }
       crossover(models[father], models[mother]).then(childModel => {
         replaced.push(child)
-        // models[child].dispose() // Bug: deleting same tensor twice
+        models[child].dispose() // Bug: deleting same tensor twice
         models[child] = childModel
       })
     }
