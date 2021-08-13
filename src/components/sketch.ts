@@ -4,6 +4,7 @@ import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
+import { lookupService } from "dns"
 
 const sketch = (p: P5Instance) => {
   let env: envString = 'Cheetah'
@@ -21,12 +22,16 @@ const sketch = (p: P5Instance) => {
   let anims: any
   let frame = 0
   let framerate = 60
-  let simrate = 30
+  let simtime = 30
 
   let append_rewards: (rewards: number[]) => void
 
   p.setup = () => {
+    tf.setBackend('cpu')
     p.createCanvas(1080, 720, p.P2D)
+    const r = p.createCanvas(1080, 720, p.P2D)
+    console.log((p as any)._renderer)
+    ;(p as any)._renderer = r
     p.frameRate(60)
     games = []
     models = []
@@ -84,40 +89,33 @@ const sketch = (p: P5Instance) => {
     append_rewards = appendRewards
   }
 
-  const update = async () => {
+  const update = () => {
     const obs = tf.tensor2d(games.map(game => game.getObservation()))
     const actions = []
     for (let i=0; i<n_agents; i++) {
-      actions.push((models[i].predict(obs.slice(i, 1)) as any).array())
+      actions.push((models[i].predict(obs.slice(i, 1)) as any).arraySync())
     }
-    await Promise.all(actions.map(async (action, i) => {
-      games[i].update((await action)[0])
-    }))
-  }
-  const sleep = (t: number) => new Promise(resolve => setTimeout(resolve, t))
-  const rolloutLoop = async () => {
-    for (frame=0; frame<ep_len; frame++) {
-      let start = performance.now()
-      await Promise.all([update(), sleep(0)])
-      const stop = performance.now()
-      const simrate_ = 1000/(stop-start)
-      simrate = 0.9*simrate + 0.1*simrate_
-      start = stop
-    }
+    actions.forEach((action, i) => games[i].update((action)[0]))
   }
 
   function* rolloutAnimation(rank?: number[]) {
     if (rank) {
       permute(models, rank)
     }
-    let finished = false
-    rolloutLoop().then(() => finished = true)
-    while (!finished) {
+    for (frame=0; frame<ep_len; frame++) {
+      let start = performance.now()
+      for (let i=0; i<1; i++) {
+        update()
+      }
+      const stop = performance.now()
+      const simtime_ = 1000/(stop-start)
+      simtime = 0.9*simtime + 0.1*simtime_
+      start = stop
       // eslint-disable-next-line
       for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
 
-      p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 42)
-      p.text(`frame: ${frame}`, p.width*0.9, 63)
+      p.text(`simtime: ${simtime.toFixed(1)}`, p.width*0.91, 54)
+      p.text(`frame: ${frame}`, p.width*0.9, 75)
       yield
     }
 
@@ -132,7 +130,6 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims => anims.crossoverAnimation(evolutionInfo))
     animation_queue.push(anims => anims.mutationAnimation(evolutionInfo))
     animation_queue.push(() => rolloutAnimation(evolutionInfo.rank))
-    // animation_queue.push(anims => anims.pauseAnimation(evolutionInfo))
     console.log(`generation ${gen_num}`)
   }
 
@@ -162,8 +159,8 @@ const sketch = (p: P5Instance) => {
     }
     p.fill(0)
     p.textSize(20)
-    framerate = 0.95*framerate+0.05*p.frameRate()
-    p.text(`framerate: ${framerate.toFixed(1)}`, p.width*0.91, 21)
+    framerate = 0.9*framerate+0.1*p.frameRate()
+    p.text(`framerate: ${framerate.toFixed(1)}`, p.width*0.91, 33)
   }
 }
 
