@@ -4,7 +4,6 @@ import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
-import { lookupService } from "dns"
 
 const sketch = (p: P5Instance) => {
   let env: envString = 'Cheetah'
@@ -22,16 +21,13 @@ const sketch = (p: P5Instance) => {
   let anims: any
   let frame = 0
   let framerate = 60
-  let simtime = 30
+  let simtime = 10
 
   let append_rewards: (rewards: number[]) => void
 
   p.setup = () => {
     tf.setBackend('cpu')
     p.createCanvas(1080, 720, p.P2D)
-    const r = p.createCanvas(1080, 720, p.P2D)
-    console.log((p as any)._renderer)
-    ;(p as any)._renderer = r
     p.frameRate(60)
     games = []
     models = []
@@ -104,7 +100,7 @@ const sketch = (p: P5Instance) => {
     }
     for (frame=0; frame<ep_len; frame++) {
       let start = performance.now()
-      for (let i=0; i<1; i++) {
+      for (let i=0; i<loops; i++) {
         update()
       }
       const stop = performance.now()
