@@ -1,5 +1,5 @@
 import React, {useRef} from 'react'
-import d3, {
+import {
   select,
   scaleLinear,
   axisRight,
@@ -73,9 +73,9 @@ const RewardChart = ({data}: {data: number[][]}) => {
   }, [data.length])
 
   return (
-    <svg ref={ref as any} width={200} height={120}>
+    <svg ref={ref as any} width={320} height={180}>
       <g>
-        <text className="title">{"Reward"}</text>
+        <text className="title" textAnchor='middle' x='45%'>{"Reward"}</text>
         <g id="yAxisG" className="tick"></g>
         <g id="xAxisG" className="tick"></g>
         <path id="path" className="line-path"/>

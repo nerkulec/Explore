@@ -7,6 +7,12 @@
   width: 100vw;
 }
 
+.root-wrapper{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .p5Canvas{
   display: block;
   margin: 0 auto;
@@ -15,20 +21,29 @@
   margin-top: 1vh;
 }
 
+.row{
+  display: flex;
+  width: 100%;
+}
+
 .column {
   float: left;
 }
 
 .right {
-  width: 10%;
+  width: 100%;
 }
 
 .middle {
   width: 1080px;
 }
 
-.row:after {
+.left {
+  width: 100%;
+}
+
+/* .row:after {
   content: "";
   display: table;
   clear: both;
-}
+} */

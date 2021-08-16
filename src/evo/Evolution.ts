@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
+import { settingsType } from '../components/types'
 import { MyModel } from './Model'
 
 const argsort = (elems: number[]) => elems
@@ -15,19 +16,16 @@ export const permute = <T>(elems: T[], rank: number[]) => {
   for (let i=0; i<elems.length; i++) {
     elems[i] = copy[rank[i]]
   }
-  // for (let i=0; i<elems.length; i++) {
-  //   elems[i] = permuted_elems[i]
-  // }
 }
 
-export const tournamentSelection = (rewards: number[], numElites: number, numToSelect: number):
+export const tournamentSelection = (rewards: number[], numElites: number, numSelects: number):
   [number[], [number, number][], number[]] => {
   const rank = argsort(rewards).reverse()
   const n = rewards.length
   const winners = rank.slice(0, numElites)
   const winners_set = new Set(winners)
   const matchups: [number, number][] = []
-  while (winners_set.size < numToSelect) {
+  while (winners_set.size < numSelects) {
     const a = Math.floor(Math.random()*n)
     const b = Math.floor(Math.random()*n)
     if (rewards[a] > rewards[b]) {
@@ -95,10 +93,10 @@ export type EvolutionInfo = {
   rewards: (number | null)[]
 }
 
-export const getEvolutionInfo = (rewards: number[], models: MyModel[], numElites = 4): EvolutionInfo => {
-  const [selection, matchups, rank] = tournamentSelection(rewards, numElites, models.length/2)
+export const getEvolutionInfo = (rewards: number[], models: MyModel[], {num_elites, num_selects}: settingsType): EvolutionInfo => {
+  const [selection, matchups, rank] = tournamentSelection(rewards, num_elites, num_selects)
   const inv_rank = rank.map((_, i) => rank.indexOf(i))
-  const elites = selection.slice(0, numElites)
+  const elites = selection.slice(0, num_elites)
   const winners = new Set(selection)
   const winnersList = [...winners]
   const losers = models.map((_, i) => i).filter(i => !winners.has(i))

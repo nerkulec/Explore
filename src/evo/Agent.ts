@@ -26,8 +26,6 @@ export const drawBody = (p: P5Instance, body: Body) => {
       if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
         p.fill(0)
         p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius)
-        // p.fill(0)
-        // p.circle(0, 0, 0.1)
       } else {
         p.rect(0, 0, shape.length+2*shape.radius, 2*shape.radius, shape.radius)
       }
