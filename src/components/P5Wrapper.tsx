@@ -1,7 +1,6 @@
 import p5 from "p5"
 import deepEqual from "deep-equal"
 import React, { createRef, FC, memo, useEffect, useState } from "react"
-import { useCallback } from "react"
 
 export interface SketchProps {
   [key: string]: any
@@ -36,6 +35,7 @@ const P5WrapperComponent: FC<P5WrapperProps> = ({
     instance?.remove()
     const canvas = createCanvas(sketch, wrapper.current)
     setInstance(canvas)
+    // eslint-disable-next-line
   }, [])
 
   useEffect(() => {
