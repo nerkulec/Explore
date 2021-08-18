@@ -7,6 +7,8 @@ export type settingsType = {
   ep_len: number,
   anim_time_coef: number,
   mutation_rate: number,
+  mutation_prob: number,
+  mutate_elites: boolean,
   loops: number,
   num_elites: number,
   num_selects: number

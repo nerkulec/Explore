@@ -6,7 +6,7 @@ export type MyModel = tf.Sequential & {json: string}
 export type envString = 'Cheetah'
 export const getModel = (env: envString): MyModel => {
   if (env === 'Cheetah') {
-    return createModel(CheetahGame.obs_size, [32, CheetahGame.act_size])
+    return createModel(CheetahGame.obs_size, [16, CheetahGame.act_size])
   } else {
     throw new Error(`Unrecodnized env name: ${env}`)
   }

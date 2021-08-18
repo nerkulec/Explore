@@ -19,10 +19,12 @@ function App() {
   const [epLen, setEpLen] = useState(200)
   const [nAgents, setNAgents] = useState(36)
   const [mutationRate, setMutationRate] = useState(10)
+  const [mutationProb, setMutationProb] = useState(0.5)
+  const [mutateElites, setMutateElites] = useState(false)
   const [animTime, setAnimTime] = useState(100)
   const [loops, setLoops] =  useState(1)
   const [numElites, setNumElites] =  useState(4)
-  const [numSelects, setNumSelects] =  useState(4)
+  const [numSelects, setNumSelects] =  useState(18)
 
   const [rewards, setRewards] = useState([] as number[][])
   const appendRewards = (new_rewards: number[]) => setRewards(rewards => [...rewards, new_rewards])
@@ -34,6 +36,8 @@ function App() {
       animTime={animTime} setAnimTime={setAnimTime}
       mutationRate={mutationRate} setMutationRate={setMutationRate}
       mutationRateValues={mutationRateValues}
+      mutationProb={mutationProb} setMutationProb={setMutationProb}
+      setMutateElites={setMutateElites}
       loops={loops} setLoops={setLoops}
       numElites={numElites} setNumElites={setNumElites}
       numSelects={numSelects} setNumSelects={setNumSelects}
@@ -50,6 +54,8 @@ function App() {
           nAgents={nAgents}
           animTime={animTime}
           mutationRate={mutationRateValues[mutationRate]}
+          mutationProb={mutationProb}
+          mutateElites={mutateElites}
           appendRewards={appendRewards}
           loops={loops}
           numElites={numElites}

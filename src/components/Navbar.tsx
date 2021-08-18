@@ -8,14 +8,16 @@ const changer = (setter: (v: any) => void) =>
 
 export default function Navbar({
   env, setEnv, epLen, setEpLen, nAgents, setNAgents, animTime, setAnimTime,
-  mutationRate, setMutationRate, mutationRateValues, loops, setLoops,
-  numElites, setNumElites, numSelects, setNumSelects}: {
+  mutationRate, setMutationRate, mutationRateValues, mutationProb, setMutationProb, setMutateElites,
+  loops, setLoops, numElites, setNumElites, numSelects, setNumSelects}: {
   env: string, setEnv: (env: string) => void,
   epLen: number, setEpLen: (len: number) => void,
-  nAgents: number, setNAgents: (len: number) => void,
-  animTime: number, setAnimTime: (len: number) => void,
-  mutationRate: number, setMutationRate: (len: number) => void,
+  nAgents: number, setNAgents: (n: number) => void,
+  animTime: number, setAnimTime: (time: number) => void,
+  mutationRate: number, setMutationRate: (rate: number) => void,
   mutationRateValues: number[],
+  mutationProb: number, setMutationProb: (prob: number) => void,
+  setMutateElites: (setter: (bool: boolean) => boolean) => void,
   loops: number, setLoops: (n: number) => void,
   numElites: number, setNumElites: (n: number) => void,
   numSelects: number, setNumSelects: (n: number) => void,
@@ -49,22 +51,30 @@ export default function Navbar({
           <div className='column'>
             <div className='control-el'>
               <label># of agents</label>
-              <input type='range' min='4' max='100' value={nAgents} onChange={changer(setNAgents)}/>
+              <input type='range' min={numSelects} max='100' value={nAgents} onChange={changer(setNAgents)}/>
               <output>{nAgents}</output>
             </div>
             <div className='control-el'>
-              <label># of elites</label>
-              <input type='range' min='0' max={nAgents} value={numElites} onChange={changer(setNumElites)}/>
-              <output>{numElites}</output>
-            </div>
-            <div className='control-el'>
-              <label># of selects</label>
-              <input type='range' min='0' max={nAgents} value={numSelects} onChange={changer(setNumSelects)}/>
+              <label># of survivors</label>
+              <input type='range' min={numElites} max={nAgents-1} value={numSelects} onChange={changer(setNumSelects)}/>
               <output>{numSelects}</output>
             </div>
+            <div className='control-el'>
+              <label># of elites</label>
+              <input type='range' min='0' max={numSelects} value={numElites} onChange={changer(setNumElites)}/>
+              <output>{numElites}</output>
+            </div>
           </div>
-
           <div className='column'>
+            <div className='control-el'>
+              <label>Mutate elites?</label>
+              <input type='checkbox' onChange={() => setMutateElites(b => !b)}/>
+            </div>
+            <div className='control-el'>
+              <label>Mutation prob</label>
+              <input type='range' min='0' max='1' step='0.05' value={mutationProb} onChange={changer(setMutationProb)}/>
+              <output>{mutationProb}</output>
+            </div>
             <div className='control-el'>
               <label>Mutation rate</label>
               <input type='range' min='0' max='15' value={mutationRate} onChange={changer(setMutationRate)}/>

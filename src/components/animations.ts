@@ -209,14 +209,14 @@ export const getAnimations = ({p, models, games, settings}:
     await Promise.all(promises)
   }
 
-  function* mutationAnimation({elites, rank}: EvolutionInfo) {
+  function* mutationAnimation({mutants, rank}: EvolutionInfo) {
     const text_animation = textAnimation('MUTATION', frames_mutation)
     const n = models.length
     for (let frame=0; frame<frames_mutation*settings.anim_time_coef; frame++) {
       const k = frame/(frames_mutation*settings.anim_time_coef-1)
       p.fill(0, 0, 255, 127*(1-Math.cos(k*2*Math.PI)/2))
       for (const i of gamesIter(rank)) {
-        if (!elites.includes(i)) {
+        if (mutants.includes(i)) {
           p.rect(0, 0, p.width, p.height)
         }
       }
@@ -224,7 +224,7 @@ export const getAnimations = ({p, models, games, settings}:
       yield
     }
     for (let i=0; i<n; i++) {
-      if (!elites.includes(i)) {
+      if (mutants.includes(i)) {
         mutate(models[i], settings.mutation_rate)
       }
     }

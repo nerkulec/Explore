@@ -15,6 +15,8 @@ const sketch = (p: P5Instance) => {
     ep_len: 600,
     anim_time_coef: 1,
     mutation_rate: 0.1,
+    mutation_prob: 0.5,
+    mutate_elites: false,
     loops: 1,
     num_elites: 4,
     num_selects: 18
@@ -28,7 +30,6 @@ const sketch = (p: P5Instance) => {
   let anims: ReturnType<typeof getAnimations>
   let frame = 0
   let framerate = 60
-  let simtime = 10
   let simrate = 140
 
   let append_rewards: (rewards: number[]) => void
@@ -50,8 +51,8 @@ const sketch = (p: P5Instance) => {
   }
 
   p.updateWithProps = ({
-    env: newEnv, epLen, nAgents, animTime, mutationRate,
-    appendRewards, loops: newLoops, numElites, numSelects
+    env: newEnv, epLen, nAgents, animTime, mutationRate, mutationProb,
+    appendRewards, loops: newLoops, numElites, numSelects, mutateElites
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
@@ -75,6 +76,12 @@ const sketch = (p: P5Instance) => {
     }
     if (mutationRate !== settings.mutation_rate) {
       settings.mutation_rate = mutationRate
+    }
+    if (mutationProb !== settings.mutation_prob) {
+      settings.mutation_prob = mutationProb
+    }
+    if (mutateElites !== settings.mutate_elites) {
+      settings.mutate_elites = mutateElites
     }
     if (newLoops !== settings.loops) {
       settings.loops = newLoops
@@ -100,15 +107,15 @@ const sketch = (p: P5Instance) => {
 
   const update_n_agents = (settings: settingsType) => {
     if (settings.n_agents !== settings.n_agents_to_be) {
-      if (settings.n_agents_to_be > settings.n_agents_to_be) {
+      if (settings.n_agents_to_be > settings.n_agents) {
         for (let i=0; i<settings.n_agents_to_be-settings.n_agents; i++) {
           models.push(getModel(settings.env))
           const game = new Environment(p)
           games.push(game)
         }
       } else {
-        models.splice(models.length-settings.n_agents_to_be)
-        games.splice(games.length-settings.n_agents_to_be)
+        models.splice(settings.n_agents_to_be)
+        games.splice(settings.n_agents_to_be)
       }
       settings.n_agents = settings.n_agents_to_be
     }

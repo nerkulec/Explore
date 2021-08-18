@@ -91,12 +91,14 @@ export type EvolutionInfo = {
   losers: number[],
   matchups: [number, number][]
   parents: [number, number, number][], // child, father, mother
+  mutants: number[],
   rank: number[],
   inv_rank: number[],
   rewards: (number | null)[]
 }
 
-export const getEvolutionInfo = (rewards: number[], models: MyModel[], {num_elites, num_selects}: settingsType): EvolutionInfo => {
+export const getEvolutionInfo = (rewards: number[], models: MyModel[],
+  {num_elites, num_selects, mutation_prob, n_agents, mutate_elites}: settingsType): EvolutionInfo => {
   const [selection, matchups, rank] = tournamentSelection(rewards, num_elites, num_selects)
   const inv_rank = rank.map((_, i) => rank.indexOf(i))
   const elites = selection.slice(0, num_elites)
@@ -111,12 +113,22 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], {num_elit
     parents.push([loser, father, mother])
   }
 
+  const mutants: number[] = []
+  for (let i=0; i<n_agents; i++) {
+    if (mutate_elites || !elites.includes(i)) {
+      if (Math.random() < mutation_prob) {
+        mutants.push(i)
+      }
+    }
+  }
+
   return {
     elites,
     winners: winnersList,
     losers,
     matchups,
     parents,
+    mutants,
     rank,
     inv_rank,
     rewards
