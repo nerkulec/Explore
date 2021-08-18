@@ -5,6 +5,7 @@ import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
+import { Z_UNKNOWN } from "zlib"
 
 const sketch = (p: P5Instance) => {
   let Environment = CheetahGame
@@ -18,13 +19,13 @@ const sketch = (p: P5Instance) => {
     num_elites: 4,
     num_selects: 18
   }
-  let games: Game[]
-  let models: MyModel[]
+  const games: Game[] = []
+  const models: MyModel[] = []
+  const promises: Promise<void>[] = []
   let gen_num = 0
-  let rewards: number[] = []
-  let animation_queue: Generator[] = []
-  let current_animation: Generator | null
-  let anims: any
+  const animation_queue: (Generator | AsyncGenerator)[] = []
+  let current_animation: Generator | AsyncGenerator | null
+  let anims: ReturnType<typeof getAnimations>
   let frame = 0
   let framerate = 60
   let simtime = 10
@@ -36,8 +37,6 @@ const sketch = (p: P5Instance) => {
     tf.setBackend('cpu')
     p.createCanvas(1080, 720, p.P2D)
     p.frameRate(60)
-    games = []
-    models = []
     for (let i=0; i<settings.n_agents; i++) {
       models.push(getModel(settings.env))
       const game = new CheetahGame(p)
@@ -57,8 +56,8 @@ const sketch = (p: P5Instance) => {
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
-      games = []
-      models = []
+      games.splice(0)
+      models.splice(0)
       for (let i=0; i<settings.n_agents; i++) {
         models.push(getModel(settings.env))
         const game = new Environment(p)
@@ -78,8 +77,8 @@ const sketch = (p: P5Instance) => {
           games.push(game)
         }
       } else {
-        models = models.slice(0, nAgents)
-        games = games.slice(0, nAgents)
+        models.splice(models.length-nAgents)
+        games.splice(games.length-nAgents)
       }
       settings.n_agents = nAgents
     }
@@ -138,20 +137,20 @@ const sketch = (p: P5Instance) => {
     }
 
     gen_num += 1
-    rewards = games.map(game => game.reward)
+    const rewards = games.map(game => game.reward)
     append_rewards(rewards)
     const evolutionInfo = getEvolutionInfo(rewards, models, settings)
     animation_queue.push(anims.permutationAnimation(evolutionInfo))
     animation_queue.push(anims.elitesAnimation(evolutionInfo))
     animation_queue.push(anims.tournamentSelectionAnimation(evolutionInfo))
     animation_queue.push(anims.eliminationAnimation(evolutionInfo))
-    animation_queue.push(anims.crossoverAnimation(evolutionInfo))
+    animation_queue.push(anims.crossoverAnimation(evolutionInfo, promises))
     animation_queue.push(anims.mutationAnimation(evolutionInfo))
     animation_queue.push(rolloutAnimation({rank: evolutionInfo.rank}))
     console.log(`generation ${gen_num}`)
   }
 
-  p.draw = () => {
+  p.draw = async () => {
     p.background(255)
     p.strokeWeight(0)
     if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
@@ -160,7 +159,8 @@ const sketch = (p: P5Instance) => {
     let drawn = false
     while (!drawn) {
       if (current_animation) {
-        if (current_animation.next().done) {
+        const next = await Promise.resolve(current_animation.next())
+        if (next.done) {
           animation_queue.shift()
           current_animation = null
         } else {

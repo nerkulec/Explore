@@ -84,7 +84,7 @@ export default function Navbar({
             </div>
             <div className='control-el'>
               <label>Loops per frame</label>
-              <input type='range' min='1' max={Math.min(epLen, 50)} value={loops} onChange={changer(setLoops)}/>
+              <input type='range' min='1' max={Math.min(epLen, 20)} value={loops} onChange={changer(setLoops)}/>
               <output>{loops}</output>
             </div>
           </div>
