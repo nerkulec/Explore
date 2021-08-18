@@ -5,13 +5,13 @@ import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
-import { Z_UNKNOWN } from "zlib"
 
 const sketch = (p: P5Instance) => {
   let Environment = CheetahGame
   const settings: settingsType = {
     env: 'Cheetah',
     n_agents: 36,
+    n_agents_to_be: 36,
     ep_len: 600,
     anim_time_coef: 1,
     mutation_rate: 0.1,
@@ -29,7 +29,7 @@ const sketch = (p: P5Instance) => {
   let frame = 0
   let framerate = 60
   let simtime = 10
-  let simrate = 20
+  let simrate = 140
 
   let append_rewards: (rewards: number[]) => void
 
@@ -40,7 +40,6 @@ const sketch = (p: P5Instance) => {
     for (let i=0; i<settings.n_agents; i++) {
       models.push(getModel(settings.env))
       const game = new CheetahGame(p)
-      game.reset()
       games.push(game)
     }
     const font = p.loadFont("OpenSans-Regular.ttf")
@@ -68,19 +67,8 @@ const sketch = (p: P5Instance) => {
     if (epLen !== settings.ep_len) {
       settings.ep_len = epLen
     }
-    if (nAgents !== settings.n_agents) {
-      if (nAgents > settings.n_agents) {
-        for (let i=0; i<nAgents-settings.n_agents; i++) {
-          models.push(getModel(settings.env))
-          const game = new Environment(p)
-          game.reset()
-          games.push(game)
-        }
-      } else {
-        models.splice(models.length-nAgents)
-        games.splice(games.length-nAgents)
-      }
-      settings.n_agents = nAgents
+    if (nAgents !== settings.n_agents_to_be) {
+      settings.n_agents_to_be = nAgents
     }
     if (animTime !== settings.anim_time_coef) {
       settings.anim_time_coef = animTime/100
@@ -110,12 +98,29 @@ const sketch = (p: P5Instance) => {
     actions.forEach((action, i) => games[i].update((action)[0]))
   }
 
+  const update_n_agents = (settings: settingsType) => {
+    if (settings.n_agents !== settings.n_agents_to_be) {
+      if (settings.n_agents_to_be > settings.n_agents_to_be) {
+        for (let i=0; i<settings.n_agents_to_be-settings.n_agents; i++) {
+          models.push(getModel(settings.env))
+          const game = new Environment(p)
+          games.push(game)
+        }
+      } else {
+        models.splice(models.length-settings.n_agents_to_be)
+        games.splice(games.length-settings.n_agents_to_be)
+      }
+      settings.n_agents = settings.n_agents_to_be
+    }
+  }
+
   function* rolloutAnimation({rank}: {rank: number[]}) {
-    if (rank && rank.length === settings.n_agents) {
+    const start = performance.now()
+    if (rank && rank.length > 0) {
       permute(models, rank)
     }
+    update_n_agents(settings)
     for (frame=0; frame<settings.ep_len;) {
-      const start = performance.now()
       let i
       for (i=0; i<settings.loops; i++) {
         update()
@@ -124,17 +129,15 @@ const sketch = (p: P5Instance) => {
           break
         }
       }
-      const time = performance.now()-start
-      simtime = 0.9*simtime + 0.1*time
-      simrate = 0.9*simrate + 0.1*i*1000/time
       // eslint-disable-next-line
       for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
 
-      p.text(`simtime: ${simtime.toFixed(1)}`, p.width*0.91, 54)
-      p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 75)
-      p.text(`frame: ${frame}`, p.width*0.9, 96)
+      p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
+      p.text(`frame: ${frame}`, p.width*0.9, 75)
       yield
     }
+    const time = performance.now()-start
+    simrate = settings.ep_len*1000/time
 
     gen_num += 1
     const rewards = games.map(game => game.reward)
