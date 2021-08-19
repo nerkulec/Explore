@@ -33,6 +33,7 @@ const sketch = (p: P5Instance) => {
   let simrate = 140
 
   let append_rewards: (rewards: number[]) => void
+  let append_correlation: (corr: number) => void
 
   p.setup = () => {
     tf.setBackend('cpu')
@@ -52,7 +53,7 @@ const sketch = (p: P5Instance) => {
 
   p.updateWithProps = ({
     env: newEnv, epLen, nAgents, animTime, mutationRate, mutationProb,
-    appendRewards, loops: newLoops, numElites, numSelects, mutateElites
+    appendRewards, appendCorrelation, loops: newLoops, numElites, numSelects, mutateElites
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
@@ -72,7 +73,7 @@ const sketch = (p: P5Instance) => {
       settings.n_agents_to_be = nAgents
     }
     if (animTime !== settings.anim_time_coef) {
-      settings.anim_time_coef = animTime/100
+      settings.anim_time_coef = animTime
     }
     if (mutationRate !== settings.mutation_rate) {
       settings.mutation_rate = mutationRate
@@ -94,6 +95,7 @@ const sketch = (p: P5Instance) => {
     }
     anims = getAnimations({p, settings, models, games})
     append_rewards = appendRewards
+    append_correlation = appendCorrelation
   }
 
   const update = () => {
@@ -121,7 +123,7 @@ const sketch = (p: P5Instance) => {
     }
   }
 
-  function* rolloutAnimation({rank}: {rank: number[]}) {
+  function* rolloutAnimation({rank, mean_parents_rewards}: {rank: number[], mean_parents_rewards?: [number, number][]}) {
     const start = performance.now()
     if (rank && rank.length > 0) {
       permute(models, rank)
@@ -149,6 +151,18 @@ const sketch = (p: P5Instance) => {
     gen_num += 1
     const rewards = games.map(game => game.reward)
     append_rewards(rewards)
+    if (mean_parents_rewards) {
+      const offspring_rewards = mean_parents_rewards
+        .map(([child, parent_reward]) => [rewards[child], parent_reward])
+      const [mean_child_reward, mean_parent_reward] = offspring_rewards
+        .reduce(([s_child, s_parents], [child_reward, parents_reward]) => [s_child+child_reward, s_parents+parents_reward], [0, 0])
+        .map(x => x/mean_parents_rewards.length)
+      const normalized_rewards = offspring_rewards.map(([c, p]) => [c-mean_child_reward, p-mean_parent_reward])
+      const [child_std, parent_std] = normalized_rewards
+        .reduce(([c_s, p_s], [c, p]) => [c_s+c*c, p_s+p*p], [0, 0]).map(Math.sqrt)
+      const correlation = normalized_rewards.map(([c, p]) => c*p).reduce((s, v) => s+v, 0)/(child_std*parent_std)
+      append_correlation(isFinite(correlation) ? correlation : 0)
+    }
     const evolutionInfo = getEvolutionInfo(rewards, models, settings)
     animation_queue.push(anims.permutationAnimation(evolutionInfo))
     animation_queue.push(anims.elitesAnimation(evolutionInfo))
@@ -156,7 +170,7 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims.eliminationAnimation(evolutionInfo))
     animation_queue.push(anims.crossoverAnimation(evolutionInfo, promises))
     animation_queue.push(anims.mutationAnimation(evolutionInfo))
-    animation_queue.push(rolloutAnimation({rank: evolutionInfo.rank}))
+    animation_queue.push(rolloutAnimation({rank: evolutionInfo.rank, mean_parents_rewards: evolutionInfo.mean_parents_rewards}))
     console.log(`generation ${gen_num}`)
   }
 

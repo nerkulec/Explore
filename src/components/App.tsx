@@ -21,13 +21,16 @@ function App() {
   const [mutationRate, setMutationRate] = useState(10)
   const [mutationProb, setMutationProb] = useState(0.5)
   const [mutateElites, setMutateElites] = useState(false)
-  const [animTime, setAnimTime] = useState(100)
+  const [animTime, setAnimTime] = useState(1)
   const [loops, setLoops] =  useState(1)
   const [numElites, setNumElites] =  useState(4)
   const [numSelects, setNumSelects] =  useState(18)
 
   const [rewards, setRewards] = useState([] as number[][])
+  const [correlations, setCorrelations] = useState([] as number[])
   const appendRewards = (new_rewards: number[]) => setRewards(rewards => [...rewards, new_rewards])
+  const appendCorrelation = (new_corr: number) => setCorrelations(corr => [...corr, new_corr])
+  
   return <div className='root-wrapper'>
     <Navbar
       env={env} setEnv={setEnv}
@@ -57,6 +60,7 @@ function App() {
           mutationProb={mutationProb}
           mutateElites={mutateElites}
           appendRewards={appendRewards}
+          appendCorrelation={appendCorrelation}
           loops={loops}
           numElites={numElites}
           numSelects={numSelects}
@@ -65,6 +69,7 @@ function App() {
       <div className="column right">
         <RightSidebar
           rewards={rewards}
+          correlations={correlations}
         />
       </div>
     </div>

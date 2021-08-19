@@ -91,6 +91,7 @@ export type EvolutionInfo = {
   losers: number[],
   matchups: [number, number][]
   parents: [number, number, number][], // child, father, mother
+  mean_parents_rewards: [number, number][],
   mutants: number[],
   rank: number[],
   inv_rank: number[],
@@ -106,11 +107,13 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[],
   const winnersList = [...winners]
   const losers = models.map((_, i) => i).filter(i => !winners.has(i))
   const parents = [] as [number, number, number][]
+  const mean_parents_rewards = [] as [number, number][]
 
   for (const loser of losers) {
     const father = randomChoice(winnersList)
     const mother = randomChoice(winnersList)
     parents.push([loser, father, mother])
+    mean_parents_rewards.push([rank[loser], 0.5*(rewards[father]+rewards[mother])])
   }
 
   const mutants: number[] = []
@@ -128,6 +131,7 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[],
     losers,
     matchups,
     parents,
+    mean_parents_rewards,
     mutants,
     rank,
     inv_rank,
