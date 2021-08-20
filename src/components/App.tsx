@@ -34,7 +34,7 @@ function App() {
   return <div className='root-wrapper'>
     <div className='title'>
       <div className='title-line'>Tinker with Neuro-Evolution in real time!</div>
-      <div className='title-line'>Evolve the cheetah to run 20m in 600 frames</div>
+      <div className='title-line'>Evolve the cheetah to run 25m in 600 frames</div>
     </div>
     <Navbar
       env={env} setEnv={setEnv}
