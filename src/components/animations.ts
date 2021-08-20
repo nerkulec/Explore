@@ -202,7 +202,7 @@ export const getAnimations = ({p, models, games, settings}:
       }
       promises.push(crossover(models[father], models[mother]).then(childModel => {
         replaced.push(child)
-        models[child].dispose() // Bug: deleting same tensor twice
+        models[child].dispose()
         models[child] = childModel
       }))
     }

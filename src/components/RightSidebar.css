@@ -9,6 +9,13 @@ text {
   stroke-linejoin: round;
 }
 
+.line-path-secondary {
+  fill: none;
+  stroke: rgba(53, 107, 177, 0.5);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
 .tick text {
   font-size: 1.5em;
   fill: #635F5D;

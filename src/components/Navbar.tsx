@@ -73,7 +73,7 @@ export default function Navbar({
             <div className='control-el'>
               <label>Mutation prob</label>
               <input type='range' min='0' max='1' step='0.05' value={mutationProb} onChange={changer(setMutationProb)}/>
-              <output>{mutationProb}</output>
+              <output>{(mutationProb*100).toFixed(0)}</output>%
             </div>
             <div className='control-el'>
               <label>Mutation rate</label>
@@ -89,8 +89,8 @@ export default function Navbar({
           <div className='column'>
             <div className='control-el'>
               <label>Animation time</label>
-              <input type='range' min='0' max='200' value={animTime} onChange={changer(setAnimTime)}/>
-              <output>{animTime}</output>%
+              <input type='range' min='0' max='2' step='0.01' value={animTime} onChange={changer(setAnimTime)}/>
+              <output>{(animTime*100).toFixed(0)}</output>%
             </div>
             <div className='control-el'>
               <label>Loops per frame</label>
