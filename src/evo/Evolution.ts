@@ -95,7 +95,7 @@ export type EvolutionInfo = {
   mutants: number[],
   rank: number[],
   inv_rank: number[],
-  rewards: (number | null)[]
+  rewards: number[]
 }
 
 export const getEvolutionInfo = (rewards: number[], models: MyModel[],

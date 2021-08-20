@@ -32,7 +32,9 @@ const sketch = (p: P5Instance) => {
   let framerate = 60
   let simrate = 140
 
-  let append_rewards: (rewards: number[]) => void
+  let append_reward: (reward: number) => void
+  let append_median: (median: number) => void
+  let append_std: (std: number) => void
   let append_correlation: (corr: number) => void
 
   p.setup = () => {
@@ -53,7 +55,8 @@ const sketch = (p: P5Instance) => {
 
   p.updateWithProps = ({
     env: newEnv, epLen, nAgents, animTime, mutationRate, mutationProb,
-    appendRewards, appendCorrelation, loops: newLoops, numElites, numSelects, mutateElites
+    appendReward, appendMedian, appendStd, appendCorrelation,
+    loops: newLoops, numElites, numSelects, mutateElites
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
@@ -94,7 +97,9 @@ const sketch = (p: P5Instance) => {
       settings.num_selects = numSelects
     }
     anims = getAnimations({p, settings, models, games})
-    append_rewards = appendRewards
+    append_reward = appendReward
+    append_median = appendMedian
+    append_std = appendStd
     append_correlation = appendCorrelation
   }
 
@@ -139,7 +144,8 @@ const sketch = (p: P5Instance) => {
         }
       }
       // eslint-disable-next-line
-      for (const i of anims.gamesIter(undefined, games.map(g => g.reward))) {}
+      const id = games.map((_, i) => i)
+      for (const i of anims.gamesIter(id, id, games.map(g => g.reward))) {}
 
       p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
       p.text(`frame: ${frame}`, p.width*0.9, 75)
@@ -149,11 +155,25 @@ const sketch = (p: P5Instance) => {
     simrate = settings.ep_len*1000/time
 
     gen_num += 1
-    const rewards = games.map(game => game.reward)
-    append_rewards(rewards)
+
+    const info = getEvolutionInfo(games.map(game => game.reward), models, settings)
+    animation_queue.push(anims.permutationAnimation(info))
+    animation_queue.push(anims.elitesAnimation(info))
+    animation_queue.push(anims.tournamentSelectionAnimation(info))
+    animation_queue.push(anims.eliminationAnimation(info))
+    animation_queue.push(anims.crossoverAnimation(info, promises))
+    animation_queue.push(anims.mutationAnimation(info))
+    animation_queue.push(rolloutAnimation({rank: info.rank, mean_parents_rewards: info.mean_parents_rewards}))
+
+    const n = info.rewards.length
+    append_reward(Math.max(...info.rewards))
+    append_median(info.rewards[info.rank[Math.floor(n/2)]])
+    const mean = info.rewards.reduce((s, x) => s+x, 0)/n
+    const std = Math.sqrt(info.rewards.map(x => x*x).reduce((s, x) => s+x, 0)/n)
+    append_std(std)
     if (mean_parents_rewards) {
       const offspring_rewards = mean_parents_rewards
-        .map(([child, parent_reward]) => [rewards[child], parent_reward])
+        .map(([child, parent_reward]) => [info.rewards[child], parent_reward])
       const [mean_child_reward, mean_parent_reward] = offspring_rewards
         .reduce(([s_child, s_parents], [child_reward, parents_reward]) => [s_child+child_reward, s_parents+parents_reward], [0, 0])
         .map(x => x/mean_parents_rewards.length)
@@ -163,14 +183,7 @@ const sketch = (p: P5Instance) => {
       const correlation = normalized_rewards.map(([c, p]) => c*p).reduce((s, v) => s+v, 0)/(child_std*parent_std)
       append_correlation(isFinite(correlation) ? correlation : 0)
     }
-    const evolutionInfo = getEvolutionInfo(rewards, models, settings)
-    animation_queue.push(anims.permutationAnimation(evolutionInfo))
-    animation_queue.push(anims.elitesAnimation(evolutionInfo))
-    animation_queue.push(anims.tournamentSelectionAnimation(evolutionInfo))
-    animation_queue.push(anims.eliminationAnimation(evolutionInfo))
-    animation_queue.push(anims.crossoverAnimation(evolutionInfo, promises))
-    animation_queue.push(anims.mutationAnimation(evolutionInfo))
-    animation_queue.push(rolloutAnimation({rank: evolutionInfo.rank, mean_parents_rewards: evolutionInfo.mean_parents_rewards}))
+
     console.log(`generation ${gen_num}`)
   }
 

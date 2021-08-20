@@ -11,9 +11,17 @@ text {
 
 .line-path-secondary {
   fill: none;
-  stroke: rgba(53, 107, 177, 0.5);
+  stroke: rgba(53, 107, 177, 0.75);
   stroke-width: 1;
   stroke-linejoin: round;
+}
+
+.area05 {
+  fill: rgba(53, 107, 177, 0.25);
+}
+
+.area50 {
+  fill: rgba(53, 107, 177, 0.50);
 }
 
 .tick text {

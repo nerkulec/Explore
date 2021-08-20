@@ -26,15 +26,19 @@ function App() {
   const [numElites, setNumElites] =  useState(4)
   const [numSelects, setNumSelects] =  useState(18)
 
-  const [rewards, setRewards] = useState([] as number[][])
+  const [rewards, setRewards] = useState([] as number[])
+  const [medians, setMedians] = useState([] as number[])
+  const [stds, setStds] = useState([] as number[])
   const [correlations, setCorrelations] = useState([] as number[])
-  const appendRewards = (new_rewards: number[]) => setRewards(rewards => [...rewards, new_rewards])
+  const appendReward = (new_reward: number) => setRewards(reward => [...reward, new_reward])
+  const appendMedian = (new_median: number) => setMedians(median => [...median, new_median])
+  const appendStd = (new_std: number) => setStds(std => [...std, new_std])
   const appendCorrelation = (new_corr: number) => setCorrelations(corr => [...corr, new_corr])
   
   return <div className='root-wrapper'>
     <div className='title'>
-      <div className='title-line'>Tinker with Neuro-Evolution in real time!</div>
-      <div className='title-line'>Evolve the cheetah to run 25m in 600 frames</div>
+      <span className='title-line'>Tinker with Neuro-Evolution in real time!</span><br/>
+      <span className='title-line'>Evolve the cheetah to run 25m in 600 frames</span>
     </div>
     <Navbar
       env={env} setEnv={setEnv}
@@ -63,7 +67,9 @@ function App() {
           mutationRate={mutationRateValues[mutationRate]}
           mutationProb={mutationProb}
           mutateElites={mutateElites}
-          appendRewards={appendRewards}
+          appendReward={appendReward}
+          appendMedian={appendMedian}
+          appendStd={appendStd}
           appendCorrelation={appendCorrelation}
           loops={loops}
           numElites={numElites}
@@ -73,6 +79,8 @@ function App() {
       <div className="column right">
         <RightSidebar
           rewards={rewards}
+          medians={medians}
+          stds={stds}
           correlations={correlations}
         />
       </div>
