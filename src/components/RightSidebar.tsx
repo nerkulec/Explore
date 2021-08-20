@@ -33,7 +33,7 @@ const RewardChart = ({rewards}: {rewards: number[][]}) => {
     const innerHeight = height - margin.top - margin.bottom
     
     const xScale = scaleLinear()
-      .domain([0, rewards.length-1])
+      .domain([0, Math.max(rewards.length-1, 0)])
       .range([0, innerWidth])
     
     const yScale = scaleLinear()
@@ -99,7 +99,7 @@ const CorrChart = ({correlations}: {correlations: number[]}) => {
     }, [0]).slice(1)
 
     const xScale = scaleLinear()
-      .domain([0, correlations.length-1])
+      .domain([0, Math.max(correlations.length-1, 0)])
       .range([0, innerWidth])
     
     const yScale = scaleLinear()

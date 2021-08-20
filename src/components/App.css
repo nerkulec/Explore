@@ -13,6 +13,11 @@
   align-items: center;
 }
 
+.title-line{
+  font-size: 1.5em;
+  align-items: center;
+}
+
 .p5Canvas{
   display: block;
   margin: 0 auto;

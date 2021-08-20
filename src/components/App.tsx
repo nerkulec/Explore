@@ -32,6 +32,10 @@ function App() {
   const appendCorrelation = (new_corr: number) => setCorrelations(corr => [...corr, new_corr])
   
   return <div className='root-wrapper'>
+    <div className='title'>
+      <div className='title-line'>Tinker with Neuro-Evolution in real time!</div>
+      <div className='title-line'>Evolve the cheetah to run 20m in 600 frames</div>
+    </div>
     <Navbar
       env={env} setEnv={setEnv}
       epLen={epLen} setEpLen={setEpLen}
