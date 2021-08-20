@@ -52,7 +52,7 @@ export const mutate = (model: MyModel, mutation_rate = 0.1) => {
 }
 
 export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {
-  const child = await tf.models.modelFromJSON(father.json as any) as MyModel
+  const child = new MyModel(...father.init_args)
   for (let i=0; i<child.layers.length; i++) {
     const child_weights = child.layers[i].getWeights()
     const child_kernel_promise = child_weights[0].array() as Promise<number[][]>
@@ -81,7 +81,6 @@ export const crossover = async (father: MyModel, mother: MyModel): Promise<MyMod
     }
     child.layers[i].setWeights([tf.tensor(child_kernel), tf.tensor(child_bias)])
   }
-  child.json = father.json
   return child
 }
 

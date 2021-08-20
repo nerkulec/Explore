@@ -1,6 +1,6 @@
 import { crossover, EvolutionInfo, mutate } from "../evo/Evolution"
 import { Game } from "../evo/Game"
-import { MyModel } from "../evo/Model"
+import { drawModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import { settingsType } from "./types"
 
@@ -185,14 +185,20 @@ export const getAnimations = ({p, models, games, settings}:
             p.rect(0, 0, p.width, p.height)
           }
         }
-        const k = frame/(frames_per_crossover*settings.anim_time_coef-1)
+        const k = frame/(frames_per_crossover*settings.anim_time_coef)
         p.push()
-        transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
-        games[father].draw(false)
+          transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
+          // games[father].draw(false)
+          p.translate(p.width*0.05, p.height*0.05)
+          p.scale(0.9, 0.9)
+          drawModel(p, models[father])
         p.pop()
         p.push()
-        transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
-        games[mother].draw(false)
+          transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
+          // games[mother].draw(false)
+          p.translate(p.width*0.05, p.height*0.05)
+          p.scale(0.9, 0.9)
+          drawModel(p, models[mother])
         p.pop()
         text_animation.next()
         yield
