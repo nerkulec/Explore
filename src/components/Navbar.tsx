@@ -32,9 +32,6 @@ export default function Navbar({
               <label>Choose enveironment</label>
               <select value={env} onChange={e => setEnv(e.target.value)}>
                 <option>Cheetah</option>
-                <option>Ant</option>
-                <option>Cat</option>
-                <option>Elephant</option>
               </select>
             </div>
             <div className='control-el'>
