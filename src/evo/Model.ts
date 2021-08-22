@@ -4,7 +4,8 @@ import { CheetahGame } from './Game'
 
 export class MyModel extends tf.Sequential {
   init_args: [number, number[]]
-  weights: number[][]
+  memoized = false
+  memo_weights: number[][][]
   constructor(inputDim: number, units: number[]) {
     super()
     this.init_args = [inputDim, units]
@@ -19,6 +20,31 @@ export class MyModel extends tf.Sequential {
         activation: i === units.length-2 ? 'tanh' : 'relu'
       }))
     }
+    this.memo_weights = []
+  }
+
+  getMemoizedWeights() {
+    if (!this.memoized) {
+      this.memo_weights = []
+      const layers = this.getWeights()
+      const n = layers.length/2
+      for (let i=0; i<n; i++) {
+        const kernel = layers[2*i].arraySync() as number[][]
+        const bias = layers[2*i+1].arraySync() as number[]
+        this.memo_weights.push([bias, ...kernel])
+      }
+      this.memoized = true
+    }
+    return this.memo_weights
+  }
+
+  setMemoizedWeights(weights: number[][][]) {
+    for (let i=0; i<weights.length; i++) {
+      const [bias, ...kernel] = weights[i]
+      this.layers[i].setWeights([tf.tensor(kernel), tf.tensor(bias)])
+    }
+    this.memo_weights = weights
+    this.memoized = true
   }
 }
 
@@ -33,9 +59,10 @@ export const getModel = (env: envString): MyModel => {
 
 export const drawModel = (p: P5Instance, model: MyModel, matrix = false) => {
   const temp = 1
-  const layers = model.getWeights()
-  const n = layers.length/2
+  const layers = model.getMemoizedWeights()
+  const n = layers.length
   for (let i=0; i<n; i++) {
+    const weights = layers[i]
     const n_in = weights.length
     const n_out = weights[0].length
     p.push()

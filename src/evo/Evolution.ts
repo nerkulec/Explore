@@ -2,6 +2,10 @@ import * as tf from '@tensorflow/tfjs'
 import { settingsType } from '../components/types'
 import { MyModel } from './Model'
 
+const deepcopy1d = <T>(xs: T[]): T[] => xs.slice()
+const deepcopy2d = <T>(xs: T[][]): T[][] => xs.map(deepcopy1d)
+const deepcopy3d = <T>(xs: T[][][]): T[][][] => xs.map(deepcopy2d)
+
 const argsort = (elems: number[]) => elems
   .map((e, i) => [e, i])
   .sort(([e1], [e2]) => e1-e2)
@@ -49,38 +53,66 @@ export const mutate = (model: MyModel, mutation_rate = 0.1) => {
     }
     layer.setWeights(weights)
   }
+  model.memoized = false
 }
 
-export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {
+// export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {
+//   const child = new MyModel(...father.init_args)
+//   for (let i=0; i<child.layers.length; i++) {
+//     const child_weights = child.layers[i].getWeights()
+//     const child_kernel_promise = child_weights[0].array() as Promise<number[][]>
+//     const child_bias_promise = child_weights[1].array() as Promise<number[]>
+//     const father_weights = father.layers[i].getWeights()
+//     const father_kernel_promise = father_weights[0].array() as Promise<number[][]>
+//     const father_bias_promise = father_weights[1].array() as Promise<number[]>
+//     const mother_weights = mother.layers[i].getWeights()
+//     const mother_kernel_promise = mother_weights[0].array() as Promise<number[][]>
+//     const mother_bias_promise = mother_weights[1].array() as Promise<number[]>
+//     const [child_kernel, child_bias] = [await child_kernel_promise, await child_bias_promise]
+//     const [father_kernel, father_bias] = [await father_kernel_promise, await father_bias_promise]
+//     const [mother_kernel, mother_bias] = [await mother_kernel_promise, await mother_bias_promise]
+//     for (let k=0; k<child_weights[1].shape[0]; k++) {
+//       if (Math.random() < 0.5) {
+//         for (let y=0; y<child_weights[0].shape[0]; y++) {
+//           child_kernel[y][k] = father_kernel[y][k]
+//         }
+//         child_bias[k] = father_bias[k]
+//       } else {
+//         for (let y=0; y<child_weights[0].shape[0]; y++) {
+//           child_kernel[y][k] = mother_kernel[y][k]
+//         }
+//         child_bias[k] = mother_bias[k]
+//       }
+//     }
+//     child.layers[i].setWeights([tf.tensor(child_kernel), tf.tensor(child_bias)])
+//   }
+//   return child
+// }
+
+export const crossover = (father: MyModel, mother: MyModel): MyModel => {
   const child = new MyModel(...father.init_args)
+  const father_weights = father.getMemoizedWeights()
+  const mother_weights = mother.getMemoizedWeights()
+  const child_weights = deepcopy3d(father_weights)
   for (let i=0; i<child.layers.length; i++) {
-    const child_weights = child.layers[i].getWeights()
-    const child_kernel_promise = child_weights[0].array() as Promise<number[][]>
-    const child_bias_promise = child_weights[1].array() as Promise<number[]>
-    const father_weights = father.layers[i].getWeights()
-    const father_kernel_promise = father_weights[0].array() as Promise<number[][]>
-    const father_bias_promise = father_weights[1].array() as Promise<number[]>
-    const mother_weights = mother.layers[i].getWeights()
-    const mother_kernel_promise = mother_weights[0].array() as Promise<number[][]>
-    const mother_bias_promise = mother_weights[1].array() as Promise<number[]>
-    const [child_kernel, child_bias] = [await child_kernel_promise, await child_bias_promise]
-    const [father_kernel, father_bias] = [await father_kernel_promise, await father_bias_promise]
-    const [mother_kernel, mother_bias] = [await mother_kernel_promise, await mother_bias_promise]
-    for (let k=0; k<child_weights[1].shape[0]; k++) {
+    const father_matrix = father_weights[i]
+    const mother_matrix = mother_weights[i]
+    const child_matrix = child_weights[i]
+    const h = child_matrix.length
+    const w = child_matrix[0].length
+    for (let k=0; k<w; k++) {
       if (Math.random() < 0.5) {
-        for (let y=0; y<child_weights[0].shape[0]; y++) {
-          child_kernel[y][k] = father_kernel[y][k]
+        for (let y=0; y<h; y++) {
+          child_matrix[y][k] = father_matrix[y][k]
         }
-        child_bias[k] = father_bias[k]
       } else {
-        for (let y=0; y<child_weights[0].shape[0]; y++) {
-          child_kernel[y][k] = mother_kernel[y][k]
+        for (let y=0; y<h; y++) {
+          child_matrix[y][k] = mother_matrix[y][k]
         }
-        child_bias[k] = mother_bias[k]
       }
     }
-    child.layers[i].setWeights([tf.tensor(child_kernel), tf.tensor(child_bias)])
   }
+  child.setMemoizedWeights(child_weights)
   return child
 }
 

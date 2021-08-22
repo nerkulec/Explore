@@ -23,10 +23,9 @@ const sketch = (p: P5Instance) => {
   }
   const games: Game[] = []
   const models: MyModel[] = []
-  const promises: Promise<void>[] = []
   let gen_num = 0
-  const animation_queue: (Generator | AsyncGenerator)[] = []
-  let current_animation: Generator | AsyncGenerator | null
+  const animation_queue: Generator[] = []
+  let current_animation: Generator | null
   let anims: ReturnType<typeof getAnimations>
   let frame = 0
   let framerate = 60
@@ -161,7 +160,7 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims.elitesAnimation(info))
     animation_queue.push(anims.tournamentSelectionAnimation(info))
     animation_queue.push(anims.eliminationAnimation(info))
-    animation_queue.push(anims.crossoverAnimation(info, promises))
+    animation_queue.push(anims.crossoverAnimation(info))
     animation_queue.push(anims.mutationAnimation(info))
     animation_queue.push(rolloutAnimation({rank: info.rank, mean_parents_rewards: info.mean_parents_rewards}))
 

@@ -167,7 +167,7 @@ export const getAnimations = ({p, models, games, settings}:
     games.forEach(g => g.reset())
   }
 
-  async function* crossoverAnimation({losers, parents, rewards, rank, inv_rank, winners}: EvolutionInfo, promises: Promise<void>[]) {
+  function* crossoverAnimation({losers, parents, rewards, rank, inv_rank, winners}: EvolutionInfo) {
     const text_animation = textAnimation('CROSSOVER', frames_per_crossover*parents.length)
     const replaced: number[] = []
     parents.sort(([c1], [c2]) => inv_rank[c1]-inv_rank[c2])
@@ -203,13 +203,11 @@ export const getAnimations = ({p, models, games, settings}:
         text_animation.next()
         yield
       }
-      promises.push(crossover(models[father], models[mother]).then(childModel => {
-        replaced.push(child)
-        models[child].dispose()
-        models[child] = childModel
-      }))
+      const childModel = crossover(models[father], models[mother])
+      replaced.push(child)
+      models[child].dispose()
+      models[child] = childModel
     }
-    await Promise.all(promises)
   }
 
   function* mutationAnimation({mutants, rank, winners}: EvolutionInfo) {
