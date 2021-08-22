@@ -25,7 +25,8 @@ export const getAnimations = ({p, models, games, settings}:
     p.scale(scale, scale)
   }
 
-  function* gamesIter(winners: number[], rank?: number[], rewards?: number[]) {
+  function* gamesIter({winners, rank, rewards, draw_game=true, nn_scale=0}: 
+    {winners: number[], rank?: number[], rewards?: number[], draw_game?: boolean, nn_scale?: number}) {
     const w = Math.ceil(Math.sqrt(settings.n_agents))
     for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
@@ -37,7 +38,15 @@ export const getAnimations = ({p, models, games, settings}:
         transformSubgame(x, y)
         if (rank)
           i = rank[i]
-        games[i].draw()
+        if (draw_game) {
+          games[i].draw()
+        }
+        if (nn_scale > 0) {
+          p.push()
+          p.scale(nn_scale)
+          models[i].draw()
+          p.pop()
+        }
         if (rewards) {
           if (winners?.includes(i)) {
             const r = rewards[i]
@@ -54,7 +63,7 @@ export const getAnimations = ({p, models, games, settings}:
   function* pauseAnimation({winners, rank, rewards}: EvolutionInfo, frames = 20) {
     for (let frame=0; frame<frames*settings.anim_time_coef; frame++) {
       // eslint-disable-next-line
-      for (const i of gamesIter(winners, rank, rewards)) {}
+      for (const i of gamesIter({winners, rank, rewards})) {}
       yield
     }
   }
@@ -88,6 +97,8 @@ export const getAnimations = ({p, models, games, settings}:
           p.textSize(120)
           p.text(r.toFixed(2), p.width/2, 130)
         }
+        p.scale(0.3)
+        models[i].draw()
         p.pop()
       }
       text_animation.next()
@@ -99,7 +110,7 @@ export const getAnimations = ({p, models, games, settings}:
     const text_animation = textAnimation('ELITISM', settings.frames_elites)
     for (let frame=0; frame<settings.frames_elites*settings.anim_time_coef; frame++) {
       const k = frame/(settings.frames_elites*settings.anim_time_coef-1)
-      for (const i of gamesIter(winners, rank, rewards)) {
+      for (const i of gamesIter({winners, rank, rewards, nn_scale: 0.3})) {
         if (elites.includes(i)) {
           const elite_color: color = [...survivor_green]
           elite_color[3] *= k
@@ -119,7 +130,7 @@ export const getAnimations = ({p, models, games, settings}:
       if (winners_so_far.includes(matchup[0]))
         continue
       for (let frame=0; frame<settings.frames_per_pair*settings.anim_time_coef; frame++) {
-        for (const i of gamesIter(rewards.map((_, i) => i), rank, rewards)) {
+        for (const i of gamesIter({winners: rewards.map((_, i) => i), rank, rewards, nn_scale: 0.3})) {
           if (matchup.includes(i)) {
             if (frame<settings.frames_per_pair*0.7) {
               continue
@@ -145,7 +156,7 @@ export const getAnimations = ({p, models, games, settings}:
   function* eliminationAnimation({losers, rewards, rank, winners}: EvolutionInfo) {
     const text_animation = textAnimation('ELIMINATION', settings.frames_losers)
     for (let frame=0; frame<settings.frames_losers*settings.anim_time_coef; frame++) {
-      for (const i of gamesIter(winners, rank, rewards)) {
+      for (const i of gamesIter({winners, rank, rewards, nn_scale: 0.3})) {
         if (losers.includes(i)) {
           p.fill(255, 255, 255, 255*frame/(settings.frames_losers*settings.anim_time_coef-1))
         } else {
@@ -168,13 +179,13 @@ export const getAnimations = ({p, models, games, settings}:
       const [fx, fy] = getXY(rank.indexOf(father))
       const [mx, my] = getXY(rank.indexOf(mother))
       for (let frame=0; frame<settings.frames_per_crossover*settings.anim_time_coef; frame++) {
-        for (const i of gamesIter(winners, rank, rewards)) {
+        for (const i of gamesIter({winners, rank, rewards, nn_scale: 1})) {
           if (losers.includes(i)) {
             if (!replaced.includes(i)) {
               p.fill(255, 255, 255, 255)
               p.rect(0, 0, p.width, p.height)
             } else {
-              models[i].draw()
+              // models[i].draw()
             }
           } else if (i !== father && i !== mother) {
             p.fill(255, 255, 255, 127)
@@ -184,12 +195,10 @@ export const getAnimations = ({p, models, games, settings}:
         const k = frame/(settings.frames_per_crossover*settings.anim_time_coef)
         p.push()
           transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
-          // games[father].draw(false)
           models[father].draw()
         p.pop()
         p.push()
           transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
-          // games[mother].draw(false)
           models[mother].draw()
         p.pop()
         text_animation.next()
@@ -208,7 +217,7 @@ export const getAnimations = ({p, models, games, settings}:
     for (let frame=0; frame<settings.frames_mutation*settings.anim_time_coef; frame++) {
       const k = frame/(settings.frames_mutation*settings.anim_time_coef-1)
       p.fill(0, 0, 255, 127*(1-Math.cos(k*2*Math.PI)/2))
-      for (const i of gamesIter(winners, rank)) {
+      for (const i of gamesIter({winners, rank, nn_scale: 1})) {
         if (mutants.includes(i)) {
           p.rect(0, 0, p.width, p.height)
         }

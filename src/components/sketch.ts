@@ -151,7 +151,7 @@ const sketch = (p: P5Instance) => {
       }
       // eslint-disable-next-line
       const id = games.map((_, i) => i)
-      for (const i of anims.gamesIter(id, id, games.map(g => g.reward))) {}
+      for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.reward), nn_scale: 0.3})) {}
 
       p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
       p.text(`frame: ${frame}`, p.width*0.9, 75)
