@@ -80,6 +80,14 @@ export const getAnimations = ({p, models, games, settings}:
     }
   }
 
+  function* nnZoomAnimation({winners, rank, rewards}: EvolutionInfo, frames: number, from=0.3, to=1) {
+    for (let frame=0; frame<frames*settings.anim_time_coef; frame++) {
+      const k = frame/(frames*settings.anim_time_coef-1)
+      for (let i of gamesIter({winners, rank, rewards, nn_scale: from+(to-from)*k})) {}
+      yield
+    }
+  }
+
   function* permutationAnimation({inv_rank, rewards}: EvolutionInfo) {
     const text_animation = textAnimation('PERMUTATION', settings.frames_permutation)
     const prev_pos = games.map((_, i) => getXY(i))
@@ -170,10 +178,12 @@ export const getAnimations = ({p, models, games, settings}:
     games.forEach(g => g.reset())
   }
 
-  function* crossoverAnimation({losers, parents, rewards, rank, inv_rank, winners}: EvolutionInfo) {
+  function* crossoverAnimation(info: EvolutionInfo) {
+    const {losers, parents, rewards, rank, inv_rank, winners} = info
     const text_animation = textAnimation('CROSSOVER', settings.frames_per_crossover*parents.length)
     const replaced: number[] = []
     parents.sort(([c1], [c2]) => inv_rank[c1]-inv_rank[c2])
+    yield* nnZoomAnimation(info, 40, 0.3, 1)
     for (const [child, father, mother] of parents) {
       const [cx, cy] = getXY(rank.indexOf(child))
       const [fx, fy] = getXY(rank.indexOf(father))
@@ -211,7 +221,8 @@ export const getAnimations = ({p, models, games, settings}:
     }
   }
 
-  function* mutationAnimation({mutants, rank, winners}: EvolutionInfo) {
+  function* mutationAnimation(info: EvolutionInfo) {
+    const {mutants, rank, winners} = info
     const text_animation = textAnimation('MUTATION', settings.frames_mutation)
     const n = models.length
     for (let frame=0; frame<settings.frames_mutation*settings.anim_time_coef; frame++) {
@@ -225,6 +236,7 @@ export const getAnimations = ({p, models, games, settings}:
       text_animation.next()
       yield
     }
+    yield* nnZoomAnimation(info, 40, 1, 0.3)
     for (let i=0; i<n; i++) {
       if (mutants.includes(i)) {
         mutate(models[i], settings.mutation_rate)
