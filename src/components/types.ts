@@ -11,5 +11,12 @@ export type settingsType = {
   mutate_elites: boolean,
   loops: number,
   num_elites: number,
-  num_selects: number
+  num_selects: number,
+  frames_elites: number,
+  frames_per_pair: number,
+  frames_losers: number,
+  frames_per_crossover: number,
+  frames_mutation: number,
+  frames_permutation: number,
+  frames_fade_in: number
 }

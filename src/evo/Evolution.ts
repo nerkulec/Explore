@@ -53,7 +53,7 @@ export const mutate = (model: MyModel, mutation_rate = 0.1) => {
     }
     layer.setWeights(weights)
   }
-  model.memoized = false
+  model.invalidateMemo()
 }
 
 // export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {

@@ -19,7 +19,14 @@ const sketch = (p: P5Instance) => {
     mutate_elites: false,
     loops: 1,
     num_elites: 4,
-    num_selects: 18
+    num_selects: 18,
+    frames_elites: 90,
+    frames_per_pair: 30,
+    frames_losers: 90,
+    frames_per_crossover: 30,
+    frames_mutation: 90,
+    frames_permutation: 90,
+    frames_fade_in: 20
   }
   const games: Game[] = []
   const models: MyModel[] = []
@@ -41,7 +48,7 @@ const sketch = (p: P5Instance) => {
     p.createCanvas(1080, 720, p.P2D)
     p.frameRate(60)
     for (let i=0; i<settings.n_agents; i++) {
-      models.push(getModel(settings.env))
+      models.push(getModel(p, settings.env))
       const game = new CheetahGame(p)
       games.push(game)
     }
@@ -62,7 +69,7 @@ const sketch = (p: P5Instance) => {
       games.splice(0)
       models.splice(0)
       for (let i=0; i<settings.n_agents; i++) {
-        models.push(getModel(settings.env))
+        models.push(getModel(p, settings.env))
         const game = new Environment(p)
         game.reset()
         games.push(game)
@@ -115,7 +122,7 @@ const sketch = (p: P5Instance) => {
     if (settings.n_agents !== settings.n_agents_to_be) {
       if (settings.n_agents_to_be > settings.n_agents) {
         for (let i=0; i<settings.n_agents_to_be-settings.n_agents; i++) {
-          models.push(getModel(settings.env))
+          models.push(getModel(p, settings.env))
           const game = new Environment(p)
           games.push(game)
         }
@@ -195,7 +202,7 @@ const sketch = (p: P5Instance) => {
     let drawn = false
     while (!drawn) {
       if (current_animation) {
-        const next = await Promise.resolve(current_animation.next())
+        const next = current_animation.next()
         if (next.done) {
           animation_queue.shift()
           current_animation = null
