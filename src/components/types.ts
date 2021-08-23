@@ -17,7 +17,7 @@ export type settingsType = {
   framesLosers: number,
   framesPerCrossover: number,
   framesMutation: number,
-  framePermutation: number,
+  framesPermutation: number,
   framesFadeIn: number,
   showNNs: boolean
 }

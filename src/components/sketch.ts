@@ -25,7 +25,7 @@ const sketch = (p: P5Instance) => {
     framesLosers: 90,
     framesPerCrossover: 30,
     framesMutation: 90,
-    framePermutation: 90,
+    framesPermutation: 90,
     framesFadeIn: 20,
     showNNs: true
   }

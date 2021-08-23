@@ -89,11 +89,11 @@ export const getAnimations = ({p, models, games, settings}:
   }
 
   function* permutationAnimation({inv_rank, rewards}: EvolutionInfo) {
-    const text_animation = textAnimation('PERMUTATION', settings.framePermutation)
+    const text_animation = textAnimation('PERMUTATION', settings.framesPermutation)
     const prev_pos = games.map((_, i) => getXY(i))
     const post_pos = games.map((_, i) => getXY(inv_rank[i]))
-    for (let frame=0; frame<settings.framePermutation*settings.animTimeCoef; frame++) {
-      const k = frame/(settings.framePermutation*settings.animTimeCoef-1)
+    for (let frame=0; frame<settings.framesPermutation*settings.animTimeCoef; frame++) {
+      const k = frame/(settings.framesPermutation*settings.animTimeCoef-1)
       for (let i=0; i<rewards.length; i++) {
         p.push()
         const x = prev_pos[i][0]+(post_pos[i][0]-prev_pos[i][0])*k

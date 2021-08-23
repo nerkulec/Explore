@@ -21,6 +21,13 @@ export default function Navbar({
   loops: number, setLoops: (n: number) => void,
   numElites: number, setNumElites: (n: number) => void,
   numSelects: number, setNumSelects: (n: number) => void,
+  framesElites: number, setFramesElites: (n: number) => void,
+  framesPerPair: number, setFramesPerPair: (n: number) => void,
+  framesLosers: number, setFramesLosers: (n: number) => void,
+  framesPerCrossover: number, setFramesPerCrossover: (n: number) => void,
+  framesMutation: number, setFramesMutation: (n: number) => void,
+  framesPermutation: number, setFramesPermutation: (n: number) => void,
+  framesFadeIn: number, setFramesFadeIn: (n: number) => void,
 }): ReactElement {
   return (
     <div className='navbar'>
@@ -104,6 +111,9 @@ export default function Navbar({
               <input type='range' min='1' max={Math.min(epLen, 20)} value={loops} onChange={changer(setLoops)}/>
               <output>{loops}</output>
             </div>
+          </div>
+          <div className='column'>
+
           </div>
         </div>
       </div>

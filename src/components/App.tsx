@@ -25,6 +25,13 @@ function App() {
   const [loops, setLoops] =  useState(1)
   const [numElites, setNumElites] =  useState(4)
   const [numSelects, setNumSelects] =  useState(18)
+  const [framesElites, setFramesElites] = useState(90)
+  const [framesPerPair, setFramesPerPair] = useState(30)
+  const [framesLosers, setFramesLosers] = useState(90)
+  const [framesPerCrossover, setFramesPerCrossover] = useState(30)
+  const [framesMutation, setFramesMutation] = useState(90)
+  const [framesPermutation, setFramesPermutation] = useState(90)
+  const [framesFadeIn, setFramesFadeIn] = useState(20)
 
   const [rewards, setRewards] = useState([] as number[])
   const [medians, setMedians] = useState([] as number[])
@@ -52,7 +59,14 @@ function App() {
       loops={loops} setLoops={setLoops}
       numElites={numElites} setNumElites={setNumElites}
       numSelects={numSelects} setNumSelects={setNumSelects}
-    />
+      framesElites={framesElites} setFramesElites={setFramesElites}
+      framesPerPair={framesPerPair} setFramesPerPair={setFramesPerPair}
+      framesLosers={framesLosers} setFramesLosers={setFramesLosers}
+      framesPerCrossover={framesPerCrossover} setFramesPerCrossover={setFramesPerCrossover}
+      framesMutation={framesMutation} setFramesMutation={setFramesMutation}
+      framesPermutation={framesPermutation} setFramesPermutation={setFramesPermutation}
+      framesFadeIn={framesFadeIn} setFramesFadeIn={setFramesFadeIn}
+          />
     <div className="row">
       <div className="column left">
         
@@ -74,6 +88,13 @@ function App() {
           loops={loops}
           numElites={numElites}
           numSelects={numSelects}
+          framesElites={framesElites}
+          framesPerPair={framesPerPair}
+          framesLosers={framesLosers}
+          framesPerCrossover={framesPerCrossover}
+          framesMutation={framesMutation}
+          framesPermutation={framesPermutation}
+          framesFadeIn={framesFadeIn}
         />
       </div>
       <div className="column right">
