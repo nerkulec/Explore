@@ -130,7 +130,7 @@ export type EvolutionInfo = {
 }
 
 export const getEvolutionInfo = (rewards: number[], models: MyModel[],
-  {num_elites, num_selects, mutation_prob, n_agents, mutate_elites}: settingsType): EvolutionInfo => {
+  {numElites: num_elites, numSelects: num_selects, mutationProb: mutation_prob, nAgents: n_agents, mutateElites: mutate_elites}: settingsType): EvolutionInfo => {
   const [selection, matchups, rank] = tournamentSelection(rewards, num_elites, num_selects)
   const inv_rank = rank.map((_, i) => rank.indexOf(i))
   const elites = selection.slice(0, num_elites)
