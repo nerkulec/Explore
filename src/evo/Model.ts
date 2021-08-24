@@ -8,6 +8,9 @@ export class MyModel extends tf.Sequential {
   p: P5Instance
   memo_weights?: number[][][]
   memo_g?: Graphics
+  id: number
+  generations_since_mutated = 0
+  generations_since_created = 0
   constructor(p: P5Instance, inputDim: number, units: number[]) {
     super()
     this.p = p
@@ -23,6 +26,7 @@ export class MyModel extends tf.Sequential {
         activation: i === units.length-2 ? 'tanh' : 'relu'
       }))
     }
+    this.id = Math.random()
     this.invalidateMemo()
   }
 
@@ -49,8 +53,8 @@ export class MyModel extends tf.Sequential {
   }
 
   invalidateMemo() {
-    this.memo_weights = undefined
-    this.memo_g = undefined
+    delete this.memo_weights
+    delete this.memo_g
   }
 
   draw(matrix=false) {
@@ -77,6 +81,11 @@ export class MyModel extends tf.Sequential {
       }
     }
     this.p.image(this.memo_g!, 0, 0)
+  }
+  
+  bump_generation() {
+    this.generations_since_mutated += 1
+    this.generations_since_created += 1
   }
 }
 

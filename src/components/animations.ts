@@ -242,6 +242,7 @@ export const getAnimations = ({p, models, games, settings}:
     for (let i=0; i<n; i++) {
       if (mutants.includes(i)) {
         mutate(models[i], settings.mutationRate)
+        models[i].generations_since_mutated = 0
       }
     }
   }

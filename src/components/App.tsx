@@ -26,7 +26,7 @@ function App() {
   const [numElites, setNumElites] =  useState(4)
   const [numSelects, setNumSelects] =  useState(18)
   const [advancedAnimation, setAdvancedAnimation] = useState(false)
-  const [showNN, setShowNN] = useState(true)
+  const [showNN, setShowNN] = useState(false)
   const [framesElites, setFramesElites] = useState(90)
   const [framesPerPair, setFramesPerPair] = useState(30)
   const [framesLosers, setFramesLosers] = useState(90)
@@ -35,14 +35,16 @@ function App() {
   const [framesPermutation, setFramesPermutation] = useState(90)
   const [framesFadeIn, setFramesFadeIn] = useState(20)
 
-  const [rewards, setRewards] = useState([] as number[])
-  const [medians, setMedians] = useState([] as number[])
-  const [stds, setStds] = useState([] as number[])
-  const [correlations, setCorrelations] = useState([] as number[])
-  const appendReward = (new_reward: number) => setRewards(reward => [...reward, new_reward])
-  const appendMedian = (new_median: number) => setMedians(median => [...median, new_median])
-  const appendStd = (new_std: number) => setStds(std => [...std, new_std])
-  const appendCorrelation = (new_corr: number) => setCorrelations(corr => [...corr, new_corr])
+  const [quantiles, setQuantiles] = useState([[], [], [], [], []] as number[][])
+  const [gensSinceCreated, setGensSinceCreated] = useState([[], [], [], [], []] as number[][])
+  const [gensSinceMutated, setGensSinceMutated] = useState([[], [], [], [], []] as number[][])
+  const [mutationSuccess, setMutationSuccess] = useState([] as number[])
+  const [crossoverSuccess, setCrossoverSuccess] = useState([] as number[])
+  const appendQuantiles = (nq: number[]) => setQuantiles(qs => qs.map((q, i) => [...q, nq[i]]))
+  const appendGensSinceCreated = (nq: number[]) => setGensSinceCreated(qs => qs.map((q, i) => [...q, nq[i]]))
+  const appendGensSinceMutated = (nq: number[]) => setGensSinceMutated(qs => qs.map((q, i) => [...q, nq[i]]))
+  const appendMutationSuccess = (ms: number) => setMutationSuccess(mss => [...mss, ms])
+  const appendCrossoverSuccess = (ms: number) => setCrossoverSuccess(mss => [...mss, ms])
   
   return <div className='root-wrapper'>
     <div className='title'>
@@ -70,7 +72,7 @@ function App() {
       framesMutation={framesMutation} setFramesMutation={setFramesMutation}
       framesPermutation={framesPermutation} setFramesPermutation={setFramesPermutation}
       framesFadeIn={framesFadeIn} setFramesFadeIn={setFramesFadeIn}
-          />
+    />
     <div className="row">
       <div className="column left">
         
@@ -85,10 +87,11 @@ function App() {
           mutationRate={mutationRateValues[mutationRate]}
           mutationProb={mutationProb}
           mutateElites={mutateElites}
-          appendReward={appendReward}
-          appendMedian={appendMedian}
-          appendStd={appendStd}
-          appendCorrelation={appendCorrelation}
+          appendQuantiles={appendQuantiles}
+          appendGensSinceCreated={appendGensSinceCreated}
+          appendGensSinceMutated={appendGensSinceMutated}
+          appendMutationSuccess={appendMutationSuccess}
+          appendCrossoverSuccess={appendCrossoverSuccess}
           loops={loops}
           numElites={numElites}
           numSelects={numSelects}
@@ -104,10 +107,11 @@ function App() {
       </div>
       <div className="column right">
         <RightSidebar
-          rewards={rewards}
-          medians={medians}
-          stds={stds}
-          correlations={correlations}
+          quantiles={quantiles}
+          mutationSuccess={mutationSuccess}
+          crossoverSuccess={crossoverSuccess}
+          gensSinceCreated={gensSinceCreated}
+          gensSinceMutated={gensSinceMutated}
         />
       </div>
     </div>

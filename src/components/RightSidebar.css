@@ -5,23 +5,67 @@ text {
 .line-path {
   fill: none;
   stroke: rgb(53, 107, 177);
-  stroke-width: 3;
+  stroke-width: 2.5;
   stroke-linejoin: round;
 }
 
 .line-path-secondary {
   fill: none;
   stroke: rgba(53, 107, 177, 0.75);
-  stroke-width: 1;
+  stroke-width: 0.5;
   stroke-linejoin: round;
 }
 
-.area05 {
-  fill: rgba(53, 107, 177, 0.25);
+.area-20 {
+  fill: rgba(53, 107, 177, 0.20);
 }
 
-.area50 {
-  fill: rgba(53, 107, 177, 0.50);
+.area-40 {
+  fill: rgba(53, 107, 177, 0.40);
+}
+
+.line-path-alt1 {
+  fill: none;
+  stroke: rgb(53, 55, 177);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.line-path-alt1-secondary {
+  fill: none;
+  stroke: rgba(53, 55, 177, 0.75);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+.area-20-alt1 {
+  fill: rgba(53, 55, 177, 0.20);
+}
+
+.area-40-alt1 {
+  fill: rgba(53, 55, 177, 0.40);
+}
+
+.line-path-alt2 {
+  fill: none;
+  stroke: rgb(107, 53, 177);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.line-path-alt2-secondary {
+  fill: none;
+  stroke: rgba(107, 53, 177, 0.75);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+.area-20-alt2 {
+  fill: rgba(107, 53, 177, 0.20);
+}
+
+.area-40-alt2 {
+  fill: rgba(107, 53, 177, 0.40);
 }
 
 .tick text {

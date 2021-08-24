@@ -5,6 +5,7 @@ import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
+import { reverse } from "./RightSidebar"
 
 const sketch = (p: P5Instance) => {
   let Environment = CheetahGame
@@ -27,7 +28,7 @@ const sketch = (p: P5Instance) => {
     framesMutation: 90,
     framesPermutation: 90,
     framesFadeIn: 20,
-    showNN: true
+    showNN: false
   }
   const games: Game[] = []
   const models: MyModel[] = []
@@ -39,10 +40,11 @@ const sketch = (p: P5Instance) => {
   let framerate = 60
   let simrate = 140
 
-  let append_reward: (reward: number) => void
-  let append_median: (median: number) => void
-  let append_std: (std: number) => void
-  let append_correlation: (corr: number) => void
+  let append_quantiles: (qs: number[]) => void
+  let append_gens_since_created: (qs: number[]) => void
+  let append_gens_since_mutated: (qs: number[]) => void
+  let append_mutation_success: (s: number) => void
+  let append_crossover_success: (s: number) => void
 
   p.setup = () => {
     tf.setBackend('cpu')
@@ -57,12 +59,13 @@ const sketch = (p: P5Instance) => {
     p.textFont(font)
     p.textAlign(p.CENTER)
     anims = getAnimations({p, settings, models, games})
-    animation_queue.push(rolloutAnimation({rank: []}))
+    animation_queue.push(rolloutAnimation({prev_rank: []}))
   }
 
   p.updateWithProps = ({
     env: newEnv, epLen, nAgents, animTime, mutationRate, mutationProb,
-    appendReward, appendMedian, appendStd, appendCorrelation,
+    appendQuantiles, appendMutationSuccess, appendCrossoverSuccess,
+    appendGensSinceCreated, appendGensSinceMutated,
     loops: newLoops, numElites, numSelects, mutateElites, framesElites, 
     framesPerPair, framesLosers, framesPerCrossover, framesMutation,
     framesPermutation, framesFadeIn, showNN
@@ -90,10 +93,11 @@ const sketch = (p: P5Instance) => {
     Object.assign(settings, newSettings)
 
     anims = getAnimations({p, settings, models, games})
-    append_reward = appendReward
-    append_median = appendMedian
-    append_std = appendStd
-    append_correlation = appendCorrelation
+    append_quantiles = appendQuantiles
+    append_gens_since_created = appendGensSinceCreated
+    append_gens_since_mutated = appendGensSinceMutated
+    append_mutation_success = appendMutationSuccess
+    append_crossover_success = appendCrossoverSuccess
   }
 
   const update = () => {
@@ -121,10 +125,14 @@ const sketch = (p: P5Instance) => {
     }
   }
 
-  function* rolloutAnimation({rank, mean_parents_rewards}: {rank: number[], mean_parents_rewards?: [number, number][]}) {
+  function* rolloutAnimation({
+    prev_rank, max_parents_rewards, mutated_rewards
+  }: {
+    prev_rank: number[], max_parents_rewards?: [number, number][], mutated_rewards?: [number, number][]
+  }) {
     const start = performance.now()
-    if (rank && rank.length > 0) {
-      permute(models, rank)
+    if (prev_rank && prev_rank.length > 0) {
+      permute(models, prev_rank)
     }
     update_n_agents(settings)
     for (frame=0; frame<settings.epLen;) {
@@ -156,26 +164,50 @@ const sketch = (p: P5Instance) => {
     animation_queue.push(anims.eliminationAnimation(info))
     animation_queue.push(anims.crossoverAnimation(info))
     animation_queue.push(anims.mutationAnimation(info))
-    animation_queue.push(rolloutAnimation({rank: info.rank, mean_parents_rewards: info.mean_parents_rewards}))
+    animation_queue.push(rolloutAnimation({
+      prev_rank: info.rank, max_parents_rewards: info.max_parents_rewards, mutated_rewards: info.mutated_rewards
+    }))
 
-    const n = info.rewards.length
-    append_reward(Math.max(...info.rewards))
-    append_median(info.rewards[info.rank[Math.floor(n/2)]])
-    const mean = info.rewards.reduce((s, x) => s+x, 0)/n
-    const std = Math.sqrt(info.rewards.map(x => x-mean).map(x => x*x).reduce((s, x) => s+x, 0)/n)
-    append_std(std)
-    if (mean_parents_rewards) {
-      const offspring_rewards = mean_parents_rewards
-        .map(([child, parent_reward]) => [info.rewards[child], parent_reward])
-      const [mean_child_reward, mean_parent_reward] = offspring_rewards
-        .reduce(([s_child, s_parents], [child_reward, parents_reward]) => [s_child+child_reward, s_parents+parents_reward], [0, 0])
-        .map(x => x/mean_parents_rewards.length)
-      const normalized_rewards = offspring_rewards.map(([c, p]) => [c-mean_child_reward, p-mean_parent_reward])
-      const [child_std, parent_std] = normalized_rewards
-        .reduce(([c_s, p_s], [c, p]) => [c_s+c*c, p_s+p*p], [0, 0]).map(Math.sqrt)
-      const correlation = normalized_rewards.map(([c, p]) => c*p).reduce((s, v) => s+v, 0)/(child_std*parent_std)
-      append_correlation(isFinite(correlation) ? correlation : 0)
+    const { rewards, rank } = info
+    const n = rewards.length
+    const { floor } = Math
+    append_quantiles([
+      rewards[rank[0]],
+      rewards[rank[floor(n*0.25)]],
+      rewards[rank[floor(n*0.5)]],
+      rewards[rank[floor(n*0.75)]],
+      rewards[rank[n-1]]
+    ])
+    if (max_parents_rewards) {
+      const fraction = max_parents_rewards
+        .reduce((count: number, [child_index, max_parents_reward]) => 
+          rewards[child_index] > max_parents_reward ? count+1 : count, 0)/n
+      append_crossover_success(fraction)
     }
+    if (mutated_rewards) {
+      const fraction = mutated_rewards
+        .reduce((count: number, [index, pre_mutation_reward]) => 
+          rewards[index] > pre_mutation_reward ? count+1 : count, 0)/n
+      append_mutation_success(fraction)
+    }
+    const gensSinceCreated = reverse(models.map(m => m.generations_since_created).sort())
+    append_gens_since_created([
+      gensSinceCreated[0],
+      gensSinceCreated[floor(n*0.25)],
+      gensSinceCreated[floor(n*0.5)],
+      gensSinceCreated[floor(n*0.75)],
+      gensSinceCreated[n-1]
+    ])
+    const gensSinceMutated = reverse(models.map(m => m.generations_since_mutated).sort())
+    append_gens_since_mutated([
+      gensSinceMutated[0],
+      gensSinceMutated[floor(n*0.25)],
+      gensSinceMutated[floor(n*0.5)],
+      gensSinceMutated[floor(n*0.75)],
+      gensSinceMutated[n-1]
+    ])
+
+    models.forEach(m => m.bump_generation())
 
     console.log(`generation ${gen_num}`)
   }

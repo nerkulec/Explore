@@ -56,39 +56,6 @@ export const mutate = (model: MyModel, mutation_rate = 0.1) => {
   model.invalidateMemo()
 }
 
-// export const crossover = async (father: MyModel, mother: MyModel): Promise<MyModel> => {
-//   const child = new MyModel(...father.init_args)
-//   for (let i=0; i<child.layers.length; i++) {
-//     const child_weights = child.layers[i].getWeights()
-//     const child_kernel_promise = child_weights[0].array() as Promise<number[][]>
-//     const child_bias_promise = child_weights[1].array() as Promise<number[]>
-//     const father_weights = father.layers[i].getWeights()
-//     const father_kernel_promise = father_weights[0].array() as Promise<number[][]>
-//     const father_bias_promise = father_weights[1].array() as Promise<number[]>
-//     const mother_weights = mother.layers[i].getWeights()
-//     const mother_kernel_promise = mother_weights[0].array() as Promise<number[][]>
-//     const mother_bias_promise = mother_weights[1].array() as Promise<number[]>
-//     const [child_kernel, child_bias] = [await child_kernel_promise, await child_bias_promise]
-//     const [father_kernel, father_bias] = [await father_kernel_promise, await father_bias_promise]
-//     const [mother_kernel, mother_bias] = [await mother_kernel_promise, await mother_bias_promise]
-//     for (let k=0; k<child_weights[1].shape[0]; k++) {
-//       if (Math.random() < 0.5) {
-//         for (let y=0; y<child_weights[0].shape[0]; y++) {
-//           child_kernel[y][k] = father_kernel[y][k]
-//         }
-//         child_bias[k] = father_bias[k]
-//       } else {
-//         for (let y=0; y<child_weights[0].shape[0]; y++) {
-//           child_kernel[y][k] = mother_kernel[y][k]
-//         }
-//         child_bias[k] = mother_bias[k]
-//       }
-//     }
-//     child.layers[i].setWeights([tf.tensor(child_kernel), tf.tensor(child_bias)])
-//   }
-//   return child
-// }
-
 export const crossover = (father: MyModel, mother: MyModel): MyModel => {
   const child = new MyModel(...father.init_args)
   const father_weights = father.getMemoizedWeights()
@@ -122,7 +89,8 @@ export type EvolutionInfo = {
   losers: number[],
   matchups: [number, number][]
   parents: [number, number, number][], // child, father, mother
-  mean_parents_rewards: [number, number][],
+  max_parents_rewards: [number, number][],
+  mutated_rewards: [number, number][]
   mutants: number[],
   rank: number[],
   inv_rank: number[],
@@ -138,13 +106,14 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[],
   const winnersList = [...winners]
   const losers = models.map((_, i) => i).filter(i => !winners.has(i))
   const parents = [] as [number, number, number][]
-  const mean_parents_rewards = [] as [number, number][]
+  const max_parents_rewards = [] as [number, number][]
+  const mutated_rewards = [] as [number, number][]
 
   for (const loser of losers) {
     const father = randomChoice(winnersList)
     const mother = randomChoice(winnersList)
     parents.push([loser, father, mother])
-    mean_parents_rewards.push([rank[loser], 0.5*(rewards[father]+rewards[mother])])
+    max_parents_rewards.push([rank[loser], Math.max(rewards[father], rewards[mother])])
   }
 
   const mutants: number[] = []
@@ -152,6 +121,7 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[],
     if (mutate_elites || !elites.includes(i)) {
       if (Math.random() < mutation_prob) {
         mutants.push(i)
+        mutated_rewards.push([rank[i], rewards[i]])
       }
     }
   }
@@ -162,7 +132,8 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[],
     losers,
     matchups,
     parents,
-    mean_parents_rewards,
+    max_parents_rewards,
+    mutated_rewards,
     mutants,
     rank,
     inv_rank,
