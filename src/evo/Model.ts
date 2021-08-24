@@ -54,7 +54,7 @@ export class MyModel extends tf.Sequential {
   }
 
   draw(matrix=false) {
-    const temp = 1
+    const temp = 0.1
     const layers = this.getMemoizedWeights()
     const n = layers.length
     if (!this.memo_g) {

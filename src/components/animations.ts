@@ -41,7 +41,7 @@ export const getAnimations = ({p, models, games, settings}:
         if (draw_game) {
           games[i].draw()
         }
-        if (nn_scale > 0) {
+        if (settings.showNN && nn_scale > 0) {
           p.push()
           p.scale(nn_scale)
           models[i].draw()
@@ -83,6 +83,7 @@ export const getAnimations = ({p, models, games, settings}:
   function* nnZoomAnimation({winners, rank, rewards}: EvolutionInfo, frames: number, from=0.3, to=1) {
     for (let frame=0; frame<frames*settings.animTimeCoef; frame++) {
       const k = frame/(frames*settings.animTimeCoef-1)
+      // eslint-disable-next-line
       for (let i of gamesIter({winners, rank, rewards, nn_scale: from+(to-from)*k})) {}
       yield
     }
@@ -106,7 +107,8 @@ export const getAnimations = ({p, models, games, settings}:
           p.text(r.toFixed(2), p.width/2, 130)
         }
         p.scale(0.3)
-        models[i].draw()
+        if (settings.showNN)
+          models[i].draw()
         p.pop()
       }
       text_animation.next()
@@ -194,8 +196,6 @@ export const getAnimations = ({p, models, games, settings}:
             if (!replaced.includes(i)) {
               p.fill(255, 255, 255, 255)
               p.rect(0, 0, p.width, p.height)
-            } else {
-              // models[i].draw()
             }
           } else if (i !== father && i !== mother) {
             p.fill(255, 255, 255, 127)
@@ -205,11 +205,13 @@ export const getAnimations = ({p, models, games, settings}:
         const k = frame/(settings.framesPerCrossover*settings.animTimeCoef)
         p.push()
           transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
-          models[father].draw()
+          if (settings.showNN)
+            models[father].draw()
         p.pop()
         p.push()
           transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
-          models[mother].draw()
+          if (settings.showNN)
+            models[mother].draw()
         p.pop()
         text_animation.next()
         yield

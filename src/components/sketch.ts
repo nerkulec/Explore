@@ -27,7 +27,7 @@ const sketch = (p: P5Instance) => {
     framesMutation: 90,
     framesPermutation: 90,
     framesFadeIn: 20,
-    showNNs: true
+    showNN: true
   }
   const games: Game[] = []
   const models: MyModel[] = []
@@ -65,7 +65,7 @@ const sketch = (p: P5Instance) => {
     appendReward, appendMedian, appendStd, appendCorrelation,
     loops: newLoops, numElites, numSelects, mutateElites, framesElites, 
     framesPerPair, framesLosers, framesPerCrossover, framesMutation,
-    framesPermutation, framesFadeIn
+    framesPermutation, framesFadeIn, showNN
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
@@ -85,7 +85,7 @@ const sketch = (p: P5Instance) => {
       animTimeCoef: animTime, mutationRate, mutationProb, epLen,
       loops: newLoops, numElites, numSelects, mutateElites, framesElites, 
       framesPerPair, framesLosers, framesPerCrossover, framesMutation,
-      framesPermutation, framesFadeIn
+      framesPermutation, framesFadeIn, showNN
     }
     Object.assign(settings, newSettings)
 
@@ -136,8 +136,8 @@ const sketch = (p: P5Instance) => {
           break
         }
       }
-      // eslint-disable-next-line
       const id = games.map((_, i) => i)
+      // eslint-disable-next-line
       for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.reward), nn_scale: 0.3})) {}
 
       p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)

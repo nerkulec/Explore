@@ -25,6 +25,8 @@ function App() {
   const [loops, setLoops] =  useState(1)
   const [numElites, setNumElites] =  useState(4)
   const [numSelects, setNumSelects] =  useState(18)
+  const [advancedAnimation, setAdvancedAnimation] = useState(false)
+  const [showNN, setShowNN] = useState(true)
   const [framesElites, setFramesElites] = useState(90)
   const [framesPerPair, setFramesPerPair] = useState(30)
   const [framesLosers, setFramesLosers] = useState(90)
@@ -59,6 +61,8 @@ function App() {
       loops={loops} setLoops={setLoops}
       numElites={numElites} setNumElites={setNumElites}
       numSelects={numSelects} setNumSelects={setNumSelects}
+      advancedAnimation={advancedAnimation} setAdvancedAnimation={setAdvancedAnimation}
+      showNN={showNN} setShowNN={setShowNN}
       framesElites={framesElites} setFramesElites={setFramesElites}
       framesPerPair={framesPerPair} setFramesPerPair={setFramesPerPair}
       framesLosers={framesLosers} setFramesLosers={setFramesLosers}
@@ -95,6 +99,7 @@ function App() {
           framesMutation={framesMutation}
           framesPermutation={framesPermutation}
           framesFadeIn={framesFadeIn}
+          showNN={showNN}
         />
       </div>
       <div className="column right">

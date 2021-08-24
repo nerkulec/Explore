@@ -9,7 +9,11 @@ const changer = (setter: (v: any) => void) =>
 export default function Navbar({
   env, setEnv, epLen, setEpLen, nAgents, setNAgents, animTime, setAnimTime,
   mutationRate, setMutationRate, mutationRateValues, mutationProb, setMutationProb, setMutateElites,
-  loops, setLoops, numElites, setNumElites, numSelects, setNumSelects}: {
+  loops, setLoops, numElites, setNumElites, numSelects, setNumSelects, 
+  advancedAnimation, setAdvancedAnimation, showNN, setShowNN, framesElites, setFramesElites,
+  framesPerPair, setFramesPerPair, framesLosers, setFramesLosers, framesPerCrossover, setFramesPerCrossover,
+  framesMutation, setFramesMutation, framesPermutation, setFramesPermutation, framesFadeIn, setFramesFadeIn
+}: {
   env: string, setEnv: (env: string) => void,
   epLen: number, setEpLen: (len: number) => void,
   nAgents: number, setNAgents: (n: number) => void,
@@ -21,6 +25,8 @@ export default function Navbar({
   loops: number, setLoops: (n: number) => void,
   numElites: number, setNumElites: (n: number) => void,
   numSelects: number, setNumSelects: (n: number) => void,
+  advancedAnimation: boolean, setAdvancedAnimation: (setter: (bool: boolean) => boolean) => void,
+  showNN: boolean, setShowNN: (setter: (bool: boolean) => boolean) => void,
   framesElites: number, setFramesElites: (n: number) => void,
   framesPerPair: number, setFramesPerPair: (n: number) => void,
   framesLosers: number, setFramesLosers: (n: number) => void,
@@ -111,9 +117,56 @@ export default function Navbar({
               <input type='range' min='1' max={Math.min(epLen, 20)} value={loops} onChange={changer(setLoops)}/>
               <output>{loops}</output>
             </div>
+            <div className='control-el tooltip'>
+              <span className='tooltiptext'>Blue means negative weights, red mean positive weights, green - close to 0</span>
+              <label>Show NNs</label>
+              <input type='checkbox' onChange={() => setShowNN(b => !b)} checked={showNN} />
+            </div>
           </div>
           <div className='column'>
-
+            <div className='control-el tooltip'>
+              <span className='tooltiptext'>Control each animation phase</span>
+              <label>Advanced settings</label>
+              <input type='checkbox' onChange={() => setAdvancedAnimation(b => !b)} checked={advancedAnimation}/>
+            </div>
+            {advancedAnimation ? <div className='column'>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the elites animation phase</span>
+                <label>Elites animation</label>
+                <input type='range' min='0' max='120' value={framesElites} onChange={changer(setFramesElites)}/>
+                <output>{framesElites}</output>
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the one tournament selection animation</span>
+                <label>Selection animation</label>
+                <input type='range' min='0' max='40' value={framesPerPair} onChange={changer(setFramesPerPair)}/>
+                <output>{framesPerPair}</output>
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the losers animation phase</span>
+                <label>Losers animation</label>
+                <input type='range' min='0' max='120' value={framesLosers} onChange={changer(setFramesLosers)}/>
+                <output>{framesLosers}</output>
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the crossover animation phase</span>
+                <label>Crossover animation</label>
+                <input type='range' min='0' max='40' value={framesPerCrossover} onChange={changer(setFramesPerCrossover)}/>
+                <output>{framesPerCrossover}</output>
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the mutation animation phase</span>
+                <label>Mutation animation</label>
+                <input type='range' min='0' max='120' value={framesMutation} onChange={changer(setFramesMutation)}/>
+                <output>{framesMutation}</output>
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Length of the permutation animation phase</span>
+                <label>Permutation animation</label>
+                <input type='range' min='0' max='120' value={framesPermutation} onChange={changer(setFramesPermutation)}/>
+                <output>{framesPermutation}</output>
+              </div>
+            </div> : null }
           </div>
         </div>
       </div>

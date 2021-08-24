@@ -19,5 +19,5 @@ export type settingsType = {
   framesMutation: number,
   framesPermutation: number,
   framesFadeIn: number,
-  showNNs: boolean
+  showNN: boolean
 }
