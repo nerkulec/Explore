@@ -23,7 +23,7 @@ export const useD3 = (
 
 const ewma = (xs: number[], coef: number) => xs
   .reduce((ewmas, value) => [...ewmas, (coef*ewmas[ewmas.length-1]+(1-coef)*value)], [0])
-  .slice(1).map((e, i) => e/(1-Math.pow(coef, i==0 ? 1 : i+1)))
+  .slice(1).map((e, i) => e/(1-Math.pow(coef, i===0 ? 1 : i+1)))
 export const reverse = <T extends unknown>(xs: T[]) => xs.map((_, i) => xs[xs.length-1-i])
 
 const RewardChart = ({quantiles}: {quantiles: number[][]}) => {
@@ -223,9 +223,9 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
       .x((d, i) => xScale(i))
       .y(d => yScale(d as any))
     
-    const areaGenerator = line()
-      .x((d, i) => xScale(i < n ? i : 2*n-1-i))
-      .y(d => yScale(d as any))
+    // const areaGenerator = line()
+    //   .x((d, i) => xScale(i < n ? i : 2*n-1-i))
+    //   .y(d => yScale(d as any))
     
     for (let i=0; i<1; i++) {
       g.select(`#creation-q${i}`)
