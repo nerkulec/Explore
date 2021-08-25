@@ -27,6 +27,7 @@ function App() {
   const [numSelects, setNumSelects] =  useState(18)
   const [advancedAnimation, setAdvancedAnimation] = useState(false)
   const [showNN, setShowNN] = useState(false)
+  const [ageSinceMutation, setAgeSinceMutation] = useState(false)
   const [framesElites, setFramesElites] = useState(90)
   const [framesPerPair, setFramesPerPair] = useState(30)
   const [framesLosers, setFramesLosers] = useState(90)
@@ -112,6 +113,8 @@ function App() {
           crossoverSuccess={crossoverSuccess}
           gensSinceCreated={gensSinceCreated}
           gensSinceMutated={gensSinceMutated}
+          ageSinceMutation={ageSinceMutation}
+          setAgeSinceMutation={setAgeSinceMutation}
         />
       </div>
     </div>

@@ -91,7 +91,7 @@ const RewardChart = ({quantiles}: {quantiles: number[][]}) => {
   return (
     <svg ref={ref as any} width={320} height={180}>
       <g>
-        <text className="title" textAnchor='middle' x='45%' y='-3%'>{"Reward"}</text>
+        <text className="title" textAnchor='middle' x='43%' y='-3%'>{"Reward"}</text>
         <g id="yAxisG" className="tick"></g>
         <g id="xAxisG" className="tick"></g>
         <path id="q0" className="line-path"/>
@@ -165,7 +165,7 @@ const SuccessChart = ({success, name}: {success: number[], name: string}) => {
   return (
     <svg ref={ref as any} width={320} height={180}>
       <g>
-        <text className="title" textAnchor='middle' x='45%' y='-3%'>{`${name} success rate`}</text>
+        <text className="title" textAnchor='middle' x='43%' y='-3%'>{`${name} success rate`}</text>
         <g id="yAxisG" className="tick"></g>
         <g id="xAxisG" className="tick"></g>
         <path id="success" className="line-path-secondary"/>
@@ -175,8 +175,9 @@ const SuccessChart = ({success, name}: {success: number[], name: string}) => {
   )
 }
 
-const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
-  gensSinceCreated: number[][], gensSinceMutated: number[][]}) => {
+const AgeChart = ({gensSinceCreated, gensSinceMutated, ageSinceMutation, setAgeSinceMutation}: {
+  gensSinceCreated: number[][], gensSinceMutated: number[][], ageSinceMutation: boolean,
+  setAgeSinceMutation: (f: (b: boolean) => boolean) => void}) => {
   const ref = useD3((svg: any) => {
     const width = +svg.attr('width')
     const height = +svg.attr('height')
@@ -184,15 +185,15 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
     const margin = { top: 20, right: 40, bottom: 20, left: 10 }
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
-
-    const n = gensSinceCreated[0].length
+    const gens = ageSinceMutation ? gensSinceMutated : gensSinceCreated
+    const n = gens[0].length
 
     const xScale = scaleLinear()
       .domain([0, Math.max(n-1, 0)])
       .range([0, innerWidth])
     
     const yScale = scaleLinear()
-      .domain([0, Math.max(...gensSinceMutated[0], ...gensSinceCreated[0])])
+      .domain([0, Math.max(...gens[0])])
       .range([innerHeight, 0])
       .nice()
     
@@ -229,67 +230,60 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
     
     for (let i=0; i<1; i++) {
       g.select(`#creation-q${i}`)
-        .attr('d', lineGenerator(gensSinceCreated[i] as any))
+        .attr('d', lineGenerator(gens[i] as any))
     }
 
     g.select('#creation-q0-ewma')
-      .attr('d', lineGenerator(ewma(gensSinceCreated[0], 0.9) as any))
+      .attr('d', lineGenerator(ewma(gens[0], 0.9) as any))
 
     g.select('#creation-area-all')
-      .attr('d', areaGenerator([...gensSinceCreated[0], ...reverse(gensSinceCreated[4])] as any))
+      .attr('d', areaGenerator([...gens[0], ...reverse(gens[4])] as any))
     g.select('#creation-area-50')
-      .attr('d', areaGenerator([...gensSinceCreated[1], ...reverse(gensSinceCreated[3])] as any))
-  
-    // for (let i=0; i<3; i++) {
-    //   g.select(`#mutation-q${i}`)
-    //     .attr('d', lineGenerator(gensSinceMutated[i] as any))
-    // }
+      .attr('d', areaGenerator([...gens[1], ...reverse(gens[3])] as any))
 
-    // g.select('#mutation-area-all')
-    //   .attr('d', areaGenerator([...gensSinceMutated[0], ...reverse(gensSinceMutated[4])] as any))
-    // g.select('#mutation-area-50')
-    //   .attr('d', areaGenerator([...gensSinceMutated[1], ...reverse(gensSinceMutated[3])] as any))
-
-  }, [gensSinceCreated[0].length])
+  }, [gensSinceCreated[0].length, ageSinceMutation])
 
   return (
-    <svg ref={ref as any} width={320} height={180}>
-      <g>
-        <text className="title" textAnchor='middle' x='45%' y='-3%'>Age of agents</text>
-        <g id="yAxisG" className="tick"></g>
-        <g id="xAxisG" className="tick"></g>
-        <path id="creation-q0" className="line-path"/>
-        {/* <path id="creation-q0-ewma" className="line-path"/> */}
-        <path id="creation-q1" className="line-path-secondary"/>
-        <path id="creation-q2" className="line-path-secondary"/>
-        <path id="creation-q3" className="line-path-secondary"/>
-        <path id="creation-q4" className="line-path-secondary"/>
-        <path id="creation-area-all" className="area-20"/>
-        <path id="creation-area-50" className="area-40"/>
-        {/* <path id="mutation-q0" className="line-path-alt2"/>
-        <path id="mutation-q1" className="line-path-alt2-secondary"/>
-        <path id="mutation-q2" className="line-path-alt2-secondary"/>
-        <path id="mutation-q3" className="line-path-alt2-secondary"/>
-        <path id="mutation-q4" className="line-path-alt2-secondary"/>
-        <path id="mutation-area-all" className="area-20-alt2"/>
-        <path id="mutation-area-50" className="area-40-alt2"/> */}
-      </g>
-    </svg>
+    <div>
+      <div>
+        <label>Toggle variant</label>
+        <input type="checkbox" onChange={() => setAgeSinceMutation(b => !b)}/>
+      </div>
+      <svg ref={ref as any} width={320} height={180}>
+        <g>
+          <text className="title" textAnchor='middle' x='43%' y='-3%'>Age of agents since {ageSinceMutation ? " last mutation" : "creation"}</text>
+          <g id="yAxisG" className="tick"></g>
+          <g id="xAxisG" className="tick"></g>
+          <path id="creation-q0" className="line-path"/>
+          <path id="creation-q1" className="line-path-secondary"/>
+          <path id="creation-q2" className="line-path-secondary"/>
+          <path id="creation-q3" className="line-path-secondary"/>
+          <path id="creation-q4" className="line-path-secondary"/>
+          <path id="creation-area-all" className="area-20"/>
+          <path id="creation-area-50" className="area-40"/>
+        </g>
+      </svg>
+    </div>
   )
 }
 
 export default function RightSidebar({
-  quantiles, mutationSuccess, crossoverSuccess, gensSinceCreated, gensSinceMutated
+  quantiles, mutationSuccess, crossoverSuccess, gensSinceCreated, gensSinceMutated,
+  ageSinceMutation, setAgeSinceMutation
 }: {
   quantiles: number[][], mutationSuccess: number[], crossoverSuccess: number[],
-  gensSinceCreated: number[][], gensSinceMutated: number[][]
+  gensSinceCreated: number[][], gensSinceMutated: number[][], ageSinceMutation: boolean,
+  setAgeSinceMutation: (f: (b: boolean) => boolean) => void
 }) {
   return (
     <div>
       <RewardChart quantiles={quantiles}/>
       <SuccessChart success={mutationSuccess} name="Mutation"/>
       <SuccessChart success={crossoverSuccess} name="Crossover"/>
-      <AgeChart gensSinceCreated={gensSinceCreated} gensSinceMutated={gensSinceMutated}/>
+      <AgeChart
+        gensSinceCreated={gensSinceCreated} gensSinceMutated={gensSinceMutated}
+        ageSinceMutation={ageSinceMutation} setAgeSinceMutation={setAgeSinceMutation}
+      />
     </div>
   )
 }
