@@ -205,13 +205,19 @@ export const getAnimations = ({p, models, games, settings}:
         const k = frame/(settings.framesPerCrossover*settings.animTimeCoef)
         p.push()
           transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
-          if (settings.showNN)
+          if (settings.showNN) {
             models[father].draw()
+          } else {
+            games[father].draw(false)
+          }
         p.pop()
         p.push()
           transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
-          if (settings.showNN)
+          if (settings.showNN) {
             models[mother].draw()
+          } else {
+            games[mother].draw(false)
+          }
         p.pop()
         text_animation.next()
         yield
@@ -238,13 +244,13 @@ export const getAnimations = ({p, models, games, settings}:
       text_animation.next()
       yield
     }
-    yield* nnZoomAnimation(info, 40, 1, 0.3)
     for (let i=0; i<n; i++) {
       if (mutants.includes(i)) {
         mutate(models[i], settings.mutationRate)
         models[i].generations_since_mutated = 0
       }
     }
+    yield* nnZoomAnimation(info, 40, 1, 0.3)
   }
 
   return {

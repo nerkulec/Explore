@@ -24,7 +24,7 @@ export const useD3 = (
 const ewma = (xs: number[], coef: number) => xs
   .reduce((ewmas, value) => [...ewmas, (coef*ewmas[ewmas.length-1]+(1-coef)*value)], [0])
   .slice(1).map((e, i) => e/(1-Math.pow(coef, i===0 ? 1 : i+1)))
-export const reverse = <T extends unknown>(xs: T[]) => xs.map((_, i) => xs[xs.length-1-i])
+export const reverse = <T extends unknown>(xs: T[]) => xs.slice().reverse()
 
 const RewardChart = ({quantiles}: {quantiles: number[][]}) => {
   const ref = useD3((svg: any) => {
@@ -52,7 +52,7 @@ const RewardChart = ({quantiles}: {quantiles: number[][]}) => {
     const yAxis = axisRight(yScale)
       .ticks(6)
       .tickSize(-innerWidth)
-      .tickFormat(x => (x as any).toFixed(2))
+      .tickFormat(x => (x as any).toFixed(1))
       .tickPadding(5)
     
     const yAxisG = g.select('#yAxisG')
@@ -202,7 +202,7 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
     const yAxis = axisRight(yScale)
       .ticks(6)
       .tickSize(-innerWidth)
-      .tickFormat(x => (x as any).toFixed(2))
+      .tickFormat(x => (x as any).toFixed(0))
       .tickPadding(5)
     
     const yAxisG = g.select('#yAxisG')
@@ -223,9 +223,9 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
       .x((d, i) => xScale(i))
       .y(d => yScale(d as any))
     
-    // const areaGenerator = line()
-    //   .x((d, i) => xScale(i < n ? i : 2*n-1-i))
-    //   .y(d => yScale(d as any))
+    const areaGenerator = line()
+      .x((d, i) => xScale(i < n ? i : 2*n-1-i))
+      .y(d => yScale(d as any))
     
     for (let i=0; i<1; i++) {
       g.select(`#creation-q${i}`)
@@ -235,10 +235,10 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
     g.select('#creation-q0-ewma')
       .attr('d', lineGenerator(ewma(gensSinceCreated[0], 0.9) as any))
 
-    // g.select('#creation-area-all')
-    //   .attr('d', areaGenerator([...gensSinceCreated[0], ...reverse(gensSinceCreated[4])] as any))
-    // g.select('#creation-area-50')
-    //   .attr('d', areaGenerator([...gensSinceCreated[1], ...reverse(gensSinceCreated[3])] as any))
+    g.select('#creation-area-all')
+      .attr('d', areaGenerator([...gensSinceCreated[0], ...reverse(gensSinceCreated[4])] as any))
+    g.select('#creation-area-50')
+      .attr('d', areaGenerator([...gensSinceCreated[1], ...reverse(gensSinceCreated[3])] as any))
   
     // for (let i=0; i<3; i++) {
     //   g.select(`#mutation-q${i}`)
@@ -258,21 +258,21 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated}: {
         <text className="title" textAnchor='middle' x='45%' y='-3%'>Age of agents</text>
         <g id="yAxisG" className="tick"></g>
         <g id="xAxisG" className="tick"></g>
-        <path id="creation-q0" className="line-path-secondary"/>
-        <path id="creation-q0-ewma" className="line-path"/>
-        <path id="creation-q1" className="line-path-alt1-secondary"/>
-        <path id="creation-q2" className="line-path-alt1-secondary"/>
-        <path id="creation-q3" className="line-path-alt1-secondary"/>
-        <path id="creation-q4" className="line-path-alt1-secondary"/>
-        <path id="creation-area-all" className="area-20-alt1"/>
-        <path id="creation-area-50" className="area-40-alt1"/>
-        <path id="mutation-q0" className="line-path-alt2"/>
+        <path id="creation-q0" className="line-path"/>
+        {/* <path id="creation-q0-ewma" className="line-path"/> */}
+        <path id="creation-q1" className="line-path-secondary"/>
+        <path id="creation-q2" className="line-path-secondary"/>
+        <path id="creation-q3" className="line-path-secondary"/>
+        <path id="creation-q4" className="line-path-secondary"/>
+        <path id="creation-area-all" className="area-20"/>
+        <path id="creation-area-50" className="area-40"/>
+        {/* <path id="mutation-q0" className="line-path-alt2"/>
         <path id="mutation-q1" className="line-path-alt2-secondary"/>
         <path id="mutation-q2" className="line-path-alt2-secondary"/>
         <path id="mutation-q3" className="line-path-alt2-secondary"/>
         <path id="mutation-q4" className="line-path-alt2-secondary"/>
         <path id="mutation-area-all" className="area-20-alt2"/>
-        <path id="mutation-area-50" className="area-40-alt2"/>
+        <path id="mutation-area-50" className="area-40-alt2"/> */}
       </g>
     </svg>
   )

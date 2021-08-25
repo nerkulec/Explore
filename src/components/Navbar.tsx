@@ -117,18 +117,20 @@ export default function Navbar({
               <input type='range' min='1' max={Math.min(epLen, 20)} value={loops} onChange={changer(setLoops)}/>
               <output>{loops}</output>
             </div>
-            <div className='control-el tooltip'>
-              <span className='tooltiptext'>Blue means negative weights, red mean positive weights, green - close to 0</span>
-              <label>Show NNs</label>
-              <input type='checkbox' onChange={() => setShowNN(b => !b)} checked={showNN} />
+            <div className='row'>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Blue means negative weights, red mean positive weights, green - close to 0</span>
+                <label>Show NNs</label>
+                <input type='checkbox' onChange={() => setShowNN(b => !b)} checked={showNN} />
+              </div>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Control each animation phase</span>
+                <label>Advanced settings</label>
+                <input type='checkbox' onChange={() => setAdvancedAnimation(b => !b)} checked={advancedAnimation}/>
+              </div>
             </div>
           </div>
           <div className='column'>
-            <div className='control-el tooltip'>
-              <span className='tooltiptext'>Control each animation phase</span>
-              <label>Advanced settings</label>
-              <input type='checkbox' onChange={() => setAdvancedAnimation(b => !b)} checked={advancedAnimation}/>
-            </div>
             {advancedAnimation ? <div className='column'>
               <div className='control-el tooltip'>
                 <span className='tooltiptext'>Length of the elites animation phase</span>

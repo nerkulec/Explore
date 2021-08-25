@@ -58,11 +58,12 @@ export class MyModel extends tf.Sequential {
   }
 
   draw(matrix=false) {
-    const temp = 0.1
+    const temp = 0.5
+    const scale = 0.4
     const layers = this.getMemoizedWeights()
     const n = layers.length
     if (!this.memo_g) {
-      this.memo_g = this.p.createGraphics(this.p.width, this.p.height)
+      this.memo_g = this.p.createGraphics(this.p.width*scale, this.p.height*scale)
       this.memo_g.translate(this.memo_g.width*0.05, this.memo_g.height*0.05)
       this.memo_g.scale(0.9, 0.9)
       for (let i=0; i<n; i++) {
@@ -80,7 +81,10 @@ export class MyModel extends tf.Sequential {
         }
       }
     }
+    this.p.push()
+    this.p.scale(1/scale)
     this.p.image(this.memo_g!, 0, 0)
+    this.p.pop()
   }
   
   bump_generation() {

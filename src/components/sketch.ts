@@ -181,16 +181,16 @@ const sketch = (p: P5Instance) => {
     if (max_parents_rewards) {
       const fraction = max_parents_rewards
         .reduce((count: number, [child_index, max_parents_reward]) => 
-          rewards[child_index] > max_parents_reward ? count+1 : count, 0)/n
-      append_crossover_success(fraction)
+          rewards[child_index] > max_parents_reward ? count+1 : count, 0)/max_parents_rewards.length
+      append_crossover_success(max_parents_rewards.length !== 0 ? fraction : 0)
     }
     if (mutated_rewards) {
       const fraction = mutated_rewards
         .reduce((count: number, [index, pre_mutation_reward]) => 
-          rewards[index] > pre_mutation_reward ? count+1 : count, 0)/n
-      append_mutation_success(fraction)
+          rewards[index] > pre_mutation_reward ? count+1 : count, 0)/mutated_rewards.length
+      append_mutation_success(mutated_rewards.length !== 0 ? fraction : 0)
     }
-    const gensSinceCreated = reverse(models.map(m => m.generations_since_created).sort())
+    const gensSinceCreated = models.map(m => m.generations_since_created).sort((a, b) => b-a)
     append_gens_since_created([
       gensSinceCreated[0],
       gensSinceCreated[floor(n*0.25)],
@@ -198,7 +198,7 @@ const sketch = (p: P5Instance) => {
       gensSinceCreated[floor(n*0.75)],
       gensSinceCreated[n-1]
     ])
-    const gensSinceMutated = reverse(models.map(m => m.generations_since_mutated).sort())
+    const gensSinceMutated = models.map(m => m.generations_since_mutated).sort((a, b) => b-a)
     append_gens_since_mutated([
       gensSinceMutated[0],
       gensSinceMutated[floor(n*0.25)],
