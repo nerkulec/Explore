@@ -5,7 +5,6 @@ import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
-import { reverse } from "./RightSidebar"
 
 const sketch = (p: P5Instance) => {
   let Environment = CheetahGame
