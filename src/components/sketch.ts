@@ -1,4 +1,4 @@
-import { CheetahGame, Game } from "../evo/Game"
+import { AcrobotGame, CheetahGame, environments, Game } from "../evo/Game"
 import {  getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
@@ -6,10 +6,12 @@ import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
 
+type ValueOf<T> = T[keyof T];
+
 const sketch = (p: P5Instance) => {
-  let Environment = CheetahGame
+  let Environment: ValueOf<typeof environments> = AcrobotGame
   const settings: settingsType = {
-    env: 'Cheetah',
+    env: 'Acrobot',
     nAgents: 36,
     nAgentsToBe: 36,
     epLen: 600,
@@ -51,7 +53,7 @@ const sketch = (p: P5Instance) => {
     p.frameRate(60)
     for (let i=0; i<settings.nAgents; i++) {
       models.push(getModel(p, settings.env))
-      const game = new CheetahGame(p)
+      const game = new Environment(p)
       games.push(game)
     }
     const font = p.loadFont("OpenSans-Regular.ttf")
@@ -71,6 +73,7 @@ const sketch = (p: P5Instance) => {
   }) => {
     if (newEnv !== settings.env) {
       settings.env = newEnv
+      Environment = environments[settings.env]
       games.splice(0)
       models.splice(0)
       for (let i=0; i<settings.nAgents; i++) {
@@ -100,12 +103,15 @@ const sketch = (p: P5Instance) => {
   }
 
   const update = () => {
-    const obs = tf.tensor2d(games.map(game => game.getObservation()))
-    const actions = []
     for (let i=0; i<settings.nAgents; i++) {
-      actions.push((models[i].predict(obs.slice(i, 1)) as any).arraySync())
+      const game = games[i]
+      const model = models[i]
+      if (!game.terminated) {
+        const obs = game.getObservation()
+        const action = (model.predict(tf.tensor2d([obs])) as any).arraySync()
+        game.update(action[0])
+      }
     }
-    actions.forEach((action, i) => games[i].update((action)[0]))
   }
 
   const update_n_agents = (settings: settingsType) => {
@@ -136,27 +142,32 @@ const sketch = (p: P5Instance) => {
     update_n_agents(settings)
     for (frame=0; frame<settings.epLen;) {
       let i
+      let games_finished = false
       for (i=0; i<settings.loops; i++) {
         update()
         frame++
-        if (frame >= settings.epLen) {
+        games_finished = games.every(g => g.terminated)
+        if (frame >= settings.epLen || games_finished) {
           break
         }
       }
       const id = games.map((_, i) => i)
       // eslint-disable-next-line
-      for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.reward), nn_scale: 0.3})) {}
+      for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.getReward()), nn_scale: 0.3})) {}
 
       p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
       p.text(`frame: ${frame}`, p.width*0.9, 75)
       yield
+      if (games_finished) {
+        break
+      }
     }
     const time = performance.now()-start
     simrate = settings.epLen*1000/time
 
     gen_num += 1
 
-    const info = getEvolutionInfo(games.map(game => game.reward), models, settings)
+    const info = getEvolutionInfo(games.map(game => game.getReward()), models, settings)
     animation_queue.push(anims.permutationAnimation(info))
     animation_queue.push(anims.elitesAnimation(info))
     animation_queue.push(anims.tournamentSelectionAnimation(info))
@@ -211,7 +222,7 @@ const sketch = (p: P5Instance) => {
     console.log(`generation ${gen_num}`)
   }
 
-  p.draw = async () => {
+  p.draw = () => {
     p.background(255)
     p.strokeWeight(0)
     if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {

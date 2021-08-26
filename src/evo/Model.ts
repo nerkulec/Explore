@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { Graphics } from 'p5'
 import { P5Instance } from '../components/P5Wrapper'
-import { CheetahGame } from './Game'
+import { AcrobotGame, CheetahGame } from './Game'
 
 export class MyModel extends tf.Sequential {
   init_args: [P5Instance, number, number[]]
@@ -76,7 +76,12 @@ export class MyModel extends tf.Sequential {
           for (let i_out=0; i_out<n_out; i_out++) {
             const c = Math.tanh(weights[i_in][i_out]*temp) // c \in (-1, 1)
             this.memo_g.stroke(120*(1-c), 100, 100, 0.5) // 0-240 = red-blue
-            this.memo_g.line(this.memo_g.width*(i/n), this.memo_g.height*i_in/(n_in-1), this.memo_g.width*(i+1)/n, this.memo_g.height*(i_out+1)/n_out)
+            this.memo_g.line(
+              this.memo_g.width*(i/n),
+              this.memo_g.height*i_in/(n_in),
+              this.memo_g.width*(i+1)/n,
+              this.memo_g.height*(i_out+1)/(n_out+1)
+            )
           }
         }
       }
@@ -93,10 +98,12 @@ export class MyModel extends tf.Sequential {
   }
 }
 
-export type envString = 'Cheetah'
+export type envString = 'Cheetah' | 'Acrobot'
 export const getModel = (p: P5Instance, env: envString): MyModel => {
   if (env === 'Cheetah') {
     return new MyModel(p, CheetahGame.obs_size, [16, CheetahGame.act_size])
+  } else if (env === 'Acrobot') {
+    return new MyModel(p, AcrobotGame.obs_size, [6, AcrobotGame.act_size])
   } else {
     throw new Error(`Unrecodnized env name: ${env}`)
   }

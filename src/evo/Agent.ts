@@ -140,7 +140,6 @@ export class Cheetah extends PhysicsAgent {
       localPivotB: [-leg_height/2, 0],
       collideConnected: false
     }))
-    // this.reset()
     this.bodies.push(this.torso, this.head, ...this.rleg, ...this.fleg)
     this.starting_positions = this.bodies.map(body => [...body.position as v2])
   }
@@ -211,9 +210,92 @@ export class Cheetah extends PhysicsAgent {
   }
 
   draw() {
-    const p = this.p5
     for (const body of this.bodies) {
-      drawBody(p, body)
+      drawBody(this.p5, body)
+    }
+  }
+}
+
+
+export type AcrobotActionSpace = [number]
+export type AcrobotObservationSpace = [number, number, number, number]
+
+export class Acrobot extends PhysicsAgent {
+  bodies: Body[]
+  constraints: RevoluteConstraint[]
+  torque_scale: number = 1.5
+  starting_positions: v2[]
+
+  constructor(p5: P5Instance) {
+    super(p5)
+    const length = 1
+    const margin = 0.10
+    this.bodies = []
+    this.constraints = []
+    const shapes = [
+      new Capsule({length, radius: margin}),
+      new Capsule({length, radius: margin})
+    ]
+    this.bodies = [
+      new Body({mass: 0, position: [0, 0]}),
+      new Body({mass: length, position : [length*0.5, 0]}),
+      new Body({mass: length, position : [length*1.5, 0]}),
+    ]
+    this.bodies[1].addShape(shapes[0])
+    this.bodies[2].addShape(shapes[1])
+    // constraints
+    this.constraints.push(new RevoluteConstraint(
+      this.bodies[0], this.bodies[1], {
+      worldPivot: [0, 0],
+      collideConnected: false
+    }))
+    this.constraints.push(new RevoluteConstraint(
+      this.bodies[1], this.bodies[2], {
+      worldPivot: [length, 0],
+      collideConnected: false
+    }))
+    this.bodies[1].position = [0, -length*0.5]
+    this.bodies[2].position = [0, -length*1.5]
+    this.starting_positions = this.bodies.map(body => [...body.position as v2])
+  }
+
+  reset() {
+    for (let i=0; i<this.bodies.length; i++) {
+      const body = this.bodies[i]
+      body.position = [...this.starting_positions[i]]
+      body.previousPosition = [...this.starting_positions[i]]
+      body.angle = -Math.PI/2
+      body.previousAngle = -Math.PI/2
+      body.velocity = [0, 0]
+      body.angularVelocity = 0
+      body.vlambda = vec2.create()
+      body.wlambda = 0 as any
+      body.force = vec2.create()
+      body.angularForce = 0
+    }
+  }
+
+  getObservation(): AcrobotObservationSpace {
+    return [
+      this.bodies[1].angle,
+      this.bodies[2].angle,
+      this.bodies[1].angularVelocity,
+      this.bodies[2].angularVelocity
+    ]
+  }
+
+  getHeight(): number {
+    return Math.sin(this.bodies[1].angle) + Math.sin(this.bodies[2].angle)
+  }
+
+  applyTorque([torque]: AcrobotActionSpace) {
+    this.bodies[1].angularForce += torque*this.torque_scale
+    this.bodies[2].angularForce -= torque*this.torque_scale
+  }
+
+  draw() {
+    for (const body of this.bodies) {
+      drawBody(this.p5, body)
     }
   }
 }

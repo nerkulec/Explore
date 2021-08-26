@@ -1,29 +1,30 @@
 import { World, Body, Plane } from "p2"
 import { P5Instance } from "../components/P5Wrapper"
-import { Cheetah, CheetahActionSpace, CheetahObservationSpace } from "./Agent"
+import { Acrobot, AcrobotActionSpace, AcrobotObservationSpace, Cheetah, CheetahActionSpace, CheetahObservationSpace } from "./Agent"
 
 export interface Game {
   reset(): void
   update(action: number[]): void
   getObservation(): number[]
   draw(...options: any): void
-  reward: number
+  getReward(): number
+  terminated: boolean
 }
 
 abstract class PhysicsGame implements Game {
   p5: P5Instance
-  reward: number
+  terminated = false
 
   constructor(p5: P5Instance) {
     this.p5 = p5
-    this.reward = 0
   }
   reset() {
-    this.reward = 0
+    this.terminated = false
   }
   abstract getObservation(): number[]
   abstract update(action: number[]): void
   abstract draw(): void
+  abstract getReward(): number
 }
 
 export class CheetahGame extends PhysicsGame {
@@ -56,9 +57,8 @@ export class CheetahGame extends PhysicsGame {
   }
 
   update(torque: CheetahActionSpace) {
-    this.world.step(this.fixedTimestep)
     this.cheetah.applyTorque(torque)
-    this.reward = this.cheetah.torso.position[0]
+    this.world.step(this.fixedTimestep)
   }
 
   draw(draw_background = true) {
@@ -99,6 +99,10 @@ export class CheetahGame extends PhysicsGame {
     return this.cheetah.getObservation()
   }
 
+  getReward() {
+    return this.cheetah.torso.position[0]
+  }
+
   reset(): CheetahObservationSpace {
     super.reset()
     const observation = this.getObservation()
@@ -107,6 +111,84 @@ export class CheetahGame extends PhysicsGame {
   }
 }
 
-export const environments = {
-  'Cheetah': CheetahGame
+export class AcrobotGame extends PhysicsGame {
+  world: World
+  fixedTimestep: number = 1/60
+  acrobot: Acrobot
+  bar_height = 1.5
+  max_height_reached = -2
+  step = 0
+  static obs_size = 4
+  static act_size = 1
+
+  constructor(p5: P5Instance) {
+    super(p5)
+    this.world = new World({
+      gravity : [0, -9],
+    })
+    this.acrobot = new Acrobot(p5)
+    this.acrobot.bodies.forEach(b => this.world.addBody(b))
+    this.acrobot.constraints.forEach(c => this.world.addConstraint(c))
+    this.reset()
+  }
+
+  update(torque: AcrobotActionSpace) {
+    if (!this.terminated) {
+      this.acrobot.applyTorque(torque)
+      this.world.step(this.fixedTimestep)
+      if (this.acrobot.getHeight() > this.bar_height) {
+        this.terminated = true
+      }
+      this.step += 1
+    }
+  }
+
+  draw(draw_background=true) {
+    const p = this.p5
+    const scale = 160
+    p.push()
+    p.fill(191)
+    p.noStroke()
+    if (draw_background)
+      p.rect(0, 0, p.width, p.height)
+    p.fill(191)
+    p.noStroke()
+    p.translate(p.width/2, p.height/2)
+    p.scale(1, -1)
+    p.scale(scale)
+    p.stroke(0)
+    p.strokeWeight(0.01)
+    p.line(-1, this.max_height_reached, 1, this.max_height_reached)
+    p.noStroke()
+    this.acrobot.draw()
+    p.pop()
+  }
+
+  getObservation(): AcrobotObservationSpace {
+    return this.acrobot.getObservation()
+  }
+
+  getReward() { // 0-100 for reaching set height + 0-100 for doing it fast
+    if (this.terminated) {
+      return 200-100*this.step/600
+    } else {
+      const height = this.acrobot.getHeight()
+      this.max_height_reached = Math.min(this.bar_height, Math.max(this.max_height_reached, height))
+      return 100*this.max_height_reached/this.bar_height
+    }
+  }
+
+  reset(): AcrobotObservationSpace {
+    super.reset()
+    this.max_height_reached = -2
+    this.step = 0
+    const observation = this.getObservation()
+    this.acrobot.reset()
+    return observation
+  }
 }
+
+export const environments = {
+  'Cheetah': CheetahGame,
+  'Acrobot': AcrobotGame
+} as const

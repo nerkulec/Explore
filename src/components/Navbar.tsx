@@ -45,6 +45,7 @@ export default function Navbar({
               <label>Choose enveironment</label>
               <select value={env} onChange={e => setEnv(e.target.value)}>
                 <option>Cheetah</option>
+                <option>Acrobot</option>
               </select>
             </div>
             <div className='control-el tooltip'>

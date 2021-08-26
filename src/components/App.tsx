@@ -15,7 +15,7 @@ const mutationRateValues = [
 ]
 
 function App() {
-  const [env, setEnv] = useState('Cheetah')
+  const [env, setEnv] = useState('Acrobot')
   const [epLen, setEpLen] = useState(200)
   const [nAgents, setNAgents] = useState(36)
   const [mutationRate, setMutationRate] = useState(10)
@@ -47,13 +47,22 @@ function App() {
   const appendMutationSuccess = (ms: number) => setMutationSuccess(mss => [...mss, ms])
   const appendCrossoverSuccess = (ms: number) => setCrossoverSuccess(mss => [...mss, ms])
   
+  const setEnvWithReset = (env: string): void => {
+    setQuantiles([[], [], [], [], []])
+    setGensSinceCreated([[], [], [], [], []])
+    setGensSinceMutated([[], [], [], [], []])
+    setMutationSuccess([])
+    setCrossoverSuccess([])
+    setEnv(env)
+  }
+  
   return <div className='root-wrapper'>
     <div className='title'>
       <span className='title-line'>Tinker with Neuro-Evolution in real time!</span><br/>
       <span className='title-line'>Evolve the cheetah to run 25m in 600 frames</span>
     </div>
     <Navbar
-      env={env} setEnv={setEnv}
+      env={env} setEnv={setEnvWithReset}
       epLen={epLen} setEpLen={setEpLen}
       nAgents={nAgents} setNAgents={setNAgents}
       animTime={animTime} setAnimTime={setAnimTime}
