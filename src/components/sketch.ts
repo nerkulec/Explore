@@ -82,6 +82,9 @@ const sketch = (p: P5Instance) => {
         game.reset()
         games.push(game)
       }
+      current_animation = null
+      animation_queue.splice(0)
+      animation_queue.push(rolloutAnimation({prev_rank: []}))
     }
     if (nAgents !== settings.nAgentsToBe) {
       settings.nAgentsToBe = nAgents
