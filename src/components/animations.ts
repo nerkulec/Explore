@@ -84,7 +84,12 @@ export const getAnimations = ({p, models, games, settings}:
     for (let frame=0; frame<frames*settings.animTimeCoef; frame++) {
       const k = frame/(frames*settings.animTimeCoef-1)
       // eslint-disable-next-line
-      for (let i of gamesIter({winners, rank, rewards, nn_scale: from+(to-from)*k})) {}
+      for (let i of gamesIter({winners, rank, rewards, nn_scale: from+(to-from)*k})) {
+        if (!winners.includes(i)) {
+          p.fill(255)
+          p.rect(0, 0, p.width, p.height)
+        }
+      }
       yield
     }
   }
