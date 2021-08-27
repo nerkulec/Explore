@@ -282,7 +282,7 @@ export class MountainCarGame implements Game {
 
   draw(draw_background=true) {
     const p = this.p5
-    const {width, height, min_pos, max_pos, min_height, max_height, xs, ys} = MountainCarGame
+    const {width, height, min_pos, max_height, xs, ys} = MountainCarGame
     p.push()
     p.fill(191)
     p.noStroke()
