@@ -1,4 +1,4 @@
-import { CheetahGame, environments, Game } from "../evo/Game"
+import { MountainCarGame, environments, Game } from "../evo/Game"
 import {  getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
@@ -9,9 +9,9 @@ import { settingsType } from "./types"
 type ValueOf<T> = T[keyof T];
 
 const sketch = (p: P5Instance) => {
-  let Environment: ValueOf<typeof environments> = CheetahGame
+  let Environment: ValueOf<typeof environments> = MountainCarGame
   const settings: settingsType = {
-    env: 'Cheetah',
+    env: 'Mountain car',
     nAgents: 36,
     nAgentsToBe: 36,
     epLen: 600,

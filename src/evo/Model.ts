@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { Graphics } from 'p5'
 import { P5Instance } from '../components/P5Wrapper'
-import { AcrobotGame, CheetahGame } from './Game'
+import { AcrobotGame, CheetahGame, MountainCarGame } from './Game'
 
 export class MyModel extends tf.Sequential {
   init_args: [P5Instance, number, number[]]
@@ -98,12 +98,14 @@ export class MyModel extends tf.Sequential {
   }
 }
 
-export type envString = 'Cheetah' | 'Acrobot'
+export type envString = 'Cheetah' | 'Acrobot' | 'Mountain car'
 export const getModel = (p: P5Instance, env: envString): MyModel => {
   if (env === 'Cheetah') {
     return new MyModel(p, CheetahGame.obs_size, [16, CheetahGame.act_size])
   } else if (env === 'Acrobot') {
     return new MyModel(p, AcrobotGame.obs_size, [6, AcrobotGame.act_size])
+  } else if (env === 'Mountain car') {
+    return new MyModel(p, MountainCarGame.obs_size, [6, MountainCarGame.act_size])
   } else {
     throw new Error(`Unrecodnized env name: ${env}`)
   }

@@ -15,7 +15,7 @@ const mutationRateValues = [
 ]
 
 function App() {
-  const [env, setEnv] = useState('Cheetah')
+  const [env, setEnv] = useState('Mountain car')
   const [epLen, setEpLen] = useState(200)
   const [nAgents, setNAgents] = useState(36)
   const [mutationRate, setMutationRate] = useState(10)
