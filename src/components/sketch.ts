@@ -71,6 +71,7 @@ const sketch = (p: P5Instance) => {
     settings: newSettings, appendQuantiles,
     appendGensSinceMutated, appendGensSinceCreated,
     appendMutationSuccess, appendCrossoverSuccess}) => {
+    newSettings.numAgentsToBe = newSettings.numAgents
     if (newSettings.env !== settings.env) {
       settings.env = newSettings.env
       Environment = environments[settings.env]
