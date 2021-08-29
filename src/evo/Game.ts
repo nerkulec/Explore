@@ -289,7 +289,7 @@ export class MountainCarGame implements Game {
     if (draw_background)
       p.rect(0, 0, p.width, p.height)
     p.scale(1, -1)
-    p.scale(p.width/width/0.98, p.height/(height+0.1)/1.12)
+    p.scale(p.width/width/0.973, p.height/(height+0.1)/1.11)
     p.translate(-min_pos, -max_height-0.11)
     if (draw_background) {
       p.fill(127)

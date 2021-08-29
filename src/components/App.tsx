@@ -20,7 +20,7 @@ function App() {
     env: 'Mountain car',
     numAgents: 36,
     numAgentsToBe: 36,
-    epLen: 600,
+    epLen: 200,
     animTimeCoef: 1,
     mutationRate: 7,
     mutationProb: 0.5,
