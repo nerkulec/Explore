@@ -4,6 +4,7 @@ import Navbar from "./Navbar"
 import { P5Wrapper } from "./P5Wrapper"
 import RightSidebar from "./RightSidebar"
 import sketch from "./sketch"
+import { settingsType } from "./types"
 
 const mutationRateValues = [
   0,
@@ -15,26 +16,34 @@ const mutationRateValues = [
 ]
 
 function App() {
-  const [env, setEnv] = useState('Mountain car')
-  const [epLen, setEpLen] = useState(200)
-  const [nAgents, setNAgents] = useState(36)
-  const [mutationRate, setMutationRate] = useState(10)
-  const [mutationProb, setMutationProb] = useState(0.5)
-  const [mutateElites, setMutateElites] = useState(false)
-  const [animTime, setAnimTime] = useState(1)
-  const [loops, setLoops] =  useState(1)
-  const [numElites, setNumElites] =  useState(4)
-  const [numSelects, setNumSelects] =  useState(18)
-  const [advancedAnimation, setAdvancedAnimation] = useState(false)
-  const [showNN, setShowNN] = useState(false)
-  const [ageSinceMutation, setAgeSinceMutation] = useState(false)
-  const [framesElites, setFramesElites] = useState(90)
-  const [framesPerPair, setFramesPerPair] = useState(30)
-  const [framesLosers, setFramesLosers] = useState(90)
-  const [framesPerCrossover, setFramesPerCrossover] = useState(30)
-  const [framesMutation, setFramesMutation] = useState(90)
-  const [framesPermutation, setFramesPermutation] = useState(90)
-  const [framesFadeIn, setFramesFadeIn] = useState(20)
+  const [settings, setSettings] = useState<settingsType>({
+    env: 'Mountain car',
+    numAgents: 36,
+    numAgentsToBe: 36,
+    epLen: 600,
+    animTimeCoef: 1,
+    mutationRate: 7,
+    mutationProb: 0.5,
+    mutateElites: false,
+    commaVariant: false,
+    loops: 1,
+    numElites: 4,
+    numSelects: 18,
+    numParents: 2,
+    tournamentSize: 2,
+    framesElites: 90,
+    framesPerPair: 30,
+    framesLosers: 90,
+    framesPerCrossover: 30,
+    framesMutation: 90,
+    framesPermutation: 90,
+    framesFadeIn: 20,
+    showNN: false,
+    advancedAnimation: false
+  })
+  const setSetting = (setting: keyof settingsType) => (value: any) => setSettings(settings => ({...settings, [setting]: value}))
+  const setSettingCb = (setting: keyof settingsType) => (cb: (oldValue: any) => any) =>
+    setSettings(settings => ({...settings, [setting]: cb(settings[setting])}))
 
   const [quantiles, setQuantiles] = useState([[], [], [], [], []] as number[][])
   const [gensSinceCreated, setGensSinceCreated] = useState([[], [], [], [], []] as number[][])
@@ -46,6 +55,7 @@ function App() {
   const appendGensSinceMutated = (nq: number[]) => setGensSinceMutated(qs => qs.map((q, i) => [...q, nq[i]]))
   const appendMutationSuccess = (ms: number) => setMutationSuccess(mss => [...mss, ms])
   const appendCrossoverSuccess = (ms: number) => setCrossoverSuccess(mss => [...mss, ms])
+  const [ageSinceMutation, setAgeSinceMutation] = useState(false)
   
   const setEnvWithReset = (env: string): void => {
     setQuantiles([[], [], [], [], []])
@@ -53,7 +63,7 @@ function App() {
     setGensSinceMutated([[], [], [], [], []])
     setMutationSuccess([])
     setCrossoverSuccess([])
-    setEnv(env)
+    setSetting('env')(env)
   }
   
   return <div className='root-wrapper'>
@@ -62,26 +72,11 @@ function App() {
       <span className='title-line'>Evolve the cheetah to run 25m in 600 frames</span>
     </div>
     <Navbar
-      env={env} setEnv={setEnvWithReset}
-      epLen={epLen} setEpLen={setEpLen}
-      nAgents={nAgents} setNAgents={setNAgents}
-      animTime={animTime} setAnimTime={setAnimTime}
-      mutationRate={mutationRate} setMutationRate={setMutationRate}
+      setEnv={setEnvWithReset}
       mutationRateValues={mutationRateValues}
-      mutationProb={mutationProb} setMutationProb={setMutationProb}
-      setMutateElites={setMutateElites}
-      loops={loops} setLoops={setLoops}
-      numElites={numElites} setNumElites={setNumElites}
-      numSelects={numSelects} setNumSelects={setNumSelects}
-      advancedAnimation={advancedAnimation} setAdvancedAnimation={setAdvancedAnimation}
-      showNN={showNN} setShowNN={setShowNN}
-      framesElites={framesElites} setFramesElites={setFramesElites}
-      framesPerPair={framesPerPair} setFramesPerPair={setFramesPerPair}
-      framesLosers={framesLosers} setFramesLosers={setFramesLosers}
-      framesPerCrossover={framesPerCrossover} setFramesPerCrossover={setFramesPerCrossover}
-      framesMutation={framesMutation} setFramesMutation={setFramesMutation}
-      framesPermutation={framesPermutation} setFramesPermutation={setFramesPermutation}
-      framesFadeIn={framesFadeIn} setFramesFadeIn={setFramesFadeIn}
+      settings={settings}
+      setSetting={setSetting}
+      setSettingCb={setSettingCb}
     />
     <div className="row">
       <div className="column left">
@@ -90,29 +85,13 @@ function App() {
       <div className="column middle">
         <P5Wrapper
           sketch={sketch}
-          env={env}
-          epLen={epLen}
-          nAgents={nAgents}
-          animTime={animTime}
-          mutationRate={mutationRateValues[mutationRate]}
-          mutationProb={mutationProb}
-          mutateElites={mutateElites}
+          settings={{...settings, mutationRate: mutationRateValues[settings.mutationRate]}}
+
           appendQuantiles={appendQuantiles}
           appendGensSinceCreated={appendGensSinceCreated}
           appendGensSinceMutated={appendGensSinceMutated}
           appendMutationSuccess={appendMutationSuccess}
           appendCrossoverSuccess={appendCrossoverSuccess}
-          loops={loops}
-          numElites={numElites}
-          numSelects={numSelects}
-          framesElites={framesElites}
-          framesPerPair={framesPerPair}
-          framesLosers={framesLosers}
-          framesPerCrossover={framesPerCrossover}
-          framesMutation={framesMutation}
-          framesPermutation={framesPermutation}
-          framesFadeIn={framesFadeIn}
-          showNN={showNN}
         />
       </div>
       <div className="column right">

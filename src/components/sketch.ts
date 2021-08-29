@@ -12,16 +12,19 @@ const sketch = (p: P5Instance) => {
   let Environment: ValueOf<typeof environments> = MountainCarGame
   const settings: settingsType = {
     env: 'Mountain car',
-    nAgents: 36,
-    nAgentsToBe: 36,
+    numAgents: 36,
+    numAgentsToBe: 36,
     epLen: 600,
     animTimeCoef: 1,
     mutationRate: 0.1,
     mutationProb: 0.5,
     mutateElites: false,
+    commaVariant: false,
     loops: 1,
     numElites: 4,
     numSelects: 18,
+    numParents: 2,
+    tournamentSize: 2,
     framesElites: 90,
     framesPerPair: 30,
     framesLosers: 90,
@@ -29,7 +32,8 @@ const sketch = (p: P5Instance) => {
     framesMutation: 90,
     framesPermutation: 90,
     framesFadeIn: 20,
-    showNN: false
+    showNN: false,
+    advancedAnimation: false
   }
   const games: Game[] = []
   const models: MyModel[] = []
@@ -51,7 +55,7 @@ const sketch = (p: P5Instance) => {
     tf.setBackend('cpu')
     p.createCanvas(1080, 720, p.P2D)
     p.frameRate(60)
-    for (let i=0; i<settings.nAgents; i++) {
+    for (let i=0; i<settings.numAgents; i++) {
       models.push(getModel(p, settings.env))
       const game = new Environment(p)
       games.push(game)
@@ -64,19 +68,15 @@ const sketch = (p: P5Instance) => {
   }
 
   p.updateWithProps = ({
-    env: newEnv, epLen, nAgents, animTime, mutationRate, mutationProb,
-    appendQuantiles, appendMutationSuccess, appendCrossoverSuccess,
-    appendGensSinceCreated, appendGensSinceMutated,
-    loops: newLoops, numElites, numSelects, mutateElites, framesElites, 
-    framesPerPair, framesLosers, framesPerCrossover, framesMutation,
-    framesPermutation, framesFadeIn, showNN
-  }) => {
-    if (newEnv !== settings.env) {
-      settings.env = newEnv
+    settings: newSettings, appendQuantiles,
+    appendGensSinceMutated, appendGensSinceCreated,
+    appendMutationSuccess, appendCrossoverSuccess}) => {
+    if (newSettings.env !== settings.env) {
+      settings.env = newSettings.env
       Environment = environments[settings.env]
       games.splice(0)
       models.splice(0)
-      for (let i=0; i<settings.nAgents; i++) {
+      for (let i=0; i<settings.numAgents; i++) {
         models.push(getModel(p, settings.env))
         const game = new Environment(p)
         game.reset()
@@ -86,15 +86,10 @@ const sketch = (p: P5Instance) => {
       animation_queue.splice(0)
       animation_queue.push(rolloutAnimation({prev_rank: []}))
     }
-    if (nAgents !== settings.nAgentsToBe) {
-      settings.nAgentsToBe = nAgents
+    if (newSettings.numAgents !== settings.numAgentsToBe) {
+      settings.numAgentsToBe = newSettings.numAgents
     }
-    const newSettings = {
-      animTimeCoef: animTime, mutationRate, mutationProb, epLen,
-      loops: newLoops, numElites, numSelects, mutateElites, framesElites, 
-      framesPerPair, framesLosers, framesPerCrossover, framesMutation,
-      framesPermutation, framesFadeIn, showNN
-    }
+    delete newSettings.numAgents
     Object.assign(settings, newSettings)
 
     anims = getAnimations({p, settings, models, games})
@@ -106,7 +101,7 @@ const sketch = (p: P5Instance) => {
   }
 
   const update = () => {
-    for (let i=0; i<settings.nAgents; i++) {
+    for (let i=0; i<settings.numAgents; i++) {
       const game = games[i]
       const model = models[i]
       if (!game.terminated) {
@@ -117,19 +112,19 @@ const sketch = (p: P5Instance) => {
     }
   }
 
-  const update_n_agents = (settings: settingsType) => {
-    if (settings.nAgents !== settings.nAgentsToBe) {
-      if (settings.nAgentsToBe > settings.nAgents) {
-        for (let i=0; i<settings.nAgentsToBe-settings.nAgents; i++) {
+  const update_num_agents = (settings: settingsType) => {
+    if (settings.numAgents !== settings.numAgentsToBe) {
+      if (settings.numAgentsToBe > settings.numAgents) {
+        for (let i=0; i<settings.numAgentsToBe-settings.numAgents; i++) {
           models.push(getModel(p, settings.env))
           const game = new Environment(p)
           games.push(game)
         }
       } else {
-        models.splice(settings.nAgentsToBe)
-        games.splice(settings.nAgentsToBe)
+        models.splice(settings.numAgentsToBe)
+        games.splice(settings.numAgentsToBe)
       }
-      settings.nAgents = settings.nAgentsToBe
+      settings.numAgents = settings.numAgentsToBe
     }
   }
 
@@ -142,7 +137,7 @@ const sketch = (p: P5Instance) => {
     if (prev_rank && prev_rank.length > 0) {
       permute(models, prev_rank)
     }
-    update_n_agents(settings)
+    update_num_agents(settings)
     for (frame=0; frame<settings.epLen;) {
       let i
       let games_finished = false

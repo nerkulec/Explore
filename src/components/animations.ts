@@ -12,12 +12,12 @@ export const getAnimations = ({p, models, games, settings}:
   {p: P5Instance, models: MyModel[], games: Game[], settings: settingsType}) => {
 
   const getXY = (i: number): [number, number] => {
-    const w = Math.ceil(Math.sqrt(settings.nAgents))
+    const w = Math.ceil(Math.sqrt(settings.numAgents))
     return [i%w, Math.floor(i/w)]
   }
 
   const transformSubgame = (x: number, y: number) => {
-    const w = Math.ceil(Math.sqrt(settings.nAgents))
+    const w = Math.ceil(Math.sqrt(settings.numAgents))
     const dx = p.width/w
     const dy = p.height/w
     const scale = 1/(w+margin)
@@ -27,11 +27,11 @@ export const getAnimations = ({p, models, games, settings}:
 
   function* gamesIter({winners, rank, rewards, draw_game=true, nn_scale=0}: 
     {winners: number[], rank?: number[], rewards?: number[], draw_game?: boolean, nn_scale?: number}) {
-    const w = Math.ceil(Math.sqrt(settings.nAgents))
+    const w = Math.ceil(Math.sqrt(settings.numAgents))
     for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
         let i = y*w+x
-        if (i>=settings.nAgents)
+        if (i>=settings.numAgents)
           return
         
         p.push()

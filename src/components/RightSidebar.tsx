@@ -245,13 +245,11 @@ const AgeChart = ({gensSinceCreated, gensSinceMutated, ageSinceMutation, setAgeS
 
   return (
     <div>
-      <div>
-        <label>Toggle variant</label>
-        <input type="checkbox" onChange={() => setAgeSinceMutation(b => !b)}/>
-      </div>
-      <svg ref={ref as any} width={320} height={180}>
+      <svg ref={ref as any} width={320} height={180} onClick={() => setAgeSinceMutation(b => !b)}>
         <g>
-          <text className="title" textAnchor='middle' x='43%' y='-3%'>Age of agents since {ageSinceMutation ? " last mutation" : "creation"}</text>
+          <text className="title" textAnchor='middle' x='43%' y='-3%'>
+            Age of agents since {ageSinceMutation ? " last mutation" : "creation"}
+          </text>
           <g id="yAxisG" className="tick"></g>
           <g id="xAxisG" className="tick"></g>
           <path id="creation-q0" className="line-path"/>

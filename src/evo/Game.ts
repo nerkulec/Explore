@@ -305,7 +305,7 @@ export class MountainCarGame implements Game {
     }
     p.fill(63)
     p.rectMode(p.CENTER)
-    const clearance = 0.08
+    const clearance = 0.1
     p.translate(this.x, this.getHeight()+clearance)
     p.rotate(Math.cos(3*this.x))
     p.rect(0, 0, 0.25, 0.12)
