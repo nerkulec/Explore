@@ -1,4 +1,4 @@
-import { MountainCarGame, environments, Game } from "../evo/Game"
+import { environments, Game, CheetahGame } from "../evo/Game"
 import {  getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
@@ -9,15 +9,15 @@ import { settingsType } from "./types"
 type ValueOf<T> = T[keyof T];
 
 const sketch = (p: P5Instance) => {
-  let Environment: ValueOf<typeof environments> = MountainCarGame
+  let Environment: ValueOf<typeof environments> = CheetahGame
   const settings: settingsType = {
-    env: 'Mountain car',
+    env: 'Cheetah',
     numAgents: 36,
     numAgentsToBe: 36,
     epLen: 600,
     animTimeCoef: 1,
     mutationRate: 0.1,
-    mutationProb: 0.5,
+    mutationProb: 50,
     mutateElites: false,
     commaVariant: false,
     loops: 1,
@@ -92,6 +92,8 @@ const sketch = (p: P5Instance) => {
     }
     delete newSettings.numAgents
     Object.assign(settings, newSettings)
+    settings.animTimeCoef = newSettings.animTimeCoef/100
+    settings.mutationProb = newSettings.mutationProb/100
 
     anims = getAnimations({p, settings, models, games})
     append_quantiles = appendQuantiles

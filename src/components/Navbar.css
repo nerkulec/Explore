@@ -23,35 +23,6 @@
   padding: .3rem .5rem;
 }
 
-.control-el{
-  display: flex;
-  align-items: center;
-}
-
 .navbar-box{
   display: flex;
-}
-
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  background-color: rgb(58, 58, 58);
-  color: rgb(255, 255, 255);
-  text-align: center;
-  width: 280px;
-  padding: 2px 0;
-  border-radius: 5px;
-  left: 105%;
-  align-self: center;
-
-  position: absolute;
-  z-index: 1;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
 }

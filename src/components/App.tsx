@@ -17,13 +17,13 @@ const mutationRateValues = [
 
 function App() {
   const [settings, setSettings] = useState<settingsType>({
-    env: 'Mountain car',
+    env: 'Cheetah',
     numAgents: 36,
     numAgentsToBe: 36,
     epLen: 200,
-    animTimeCoef: 1,
+    animTimeCoef: 100,
     mutationRate: 7,
-    mutationProb: 0.5,
+    mutationProb: 50,
     mutateElites: false,
     commaVariant: false,
     loops: 1,
