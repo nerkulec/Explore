@@ -69,7 +69,12 @@ function App() {
   return <div className='root-wrapper'>
     <div className='title'>
       <span className='title-line'>Tinker with Neuro-Evolution in real time!</span><br/>
-      <span className='title-line'>Evolve the cheetah to run 25m in 600 frames</span>
+      <span className='title-line'>{
+        settings.env === 'Cheetah' ? 'Reach the furthest in 600 frames' :
+        settings.env === 'Acrobot' ? 'Swing upwards in least amount of time' :
+        settings.env === 'Mountain car' ? 'Climb the hill using the least amount of fuel' :
+        null}
+      </span>
     </div>
     <Navbar
       setEnv={setEnvWithReset}
