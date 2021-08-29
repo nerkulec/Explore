@@ -138,7 +138,7 @@ export const getAnimations = ({p, models, games, settings}:
     }
   }
 
-  function* tournamentSelectionAnimation({matchups, elites, rewards, rank, winners}: EvolutionInfo) {
+  function* tournamentSelectionAnimation({matchups, elites, rewards, rank}: EvolutionInfo) {
     const text_animation = textAnimation('SELECTION', settings.framesPerPair*matchups.length)
     const winners_so_far: number[] = [...elites]
     for (const matchup of matchups) {
@@ -191,10 +191,9 @@ export const getAnimations = ({p, models, games, settings}:
     const replaced: number[] = []
     parents.sort(([c1], [c2]) => inv_rank[c1]-inv_rank[c2])
     yield* nnZoomAnimation(info, 40, 0.3, 1)
-    for (const [child, father, mother] of parents) {
+    for (const [child, ...fathers] of parents) {
       const [cx, cy] = getXY(rank.indexOf(child))
-      const [fx, fy] = getXY(rank.indexOf(father))
-      const [mx, my] = getXY(rank.indexOf(mother))
+      const xys = fathers.map(f => getXY(inv_rank[f]))
       for (let frame=0; frame<settings.framesPerCrossover*settings.animTimeCoef; frame++) {
         for (const i of gamesIter({winners, rank, rewards, nn_scale: 1})) {
           if (losers.includes(i)) {
@@ -202,32 +201,28 @@ export const getAnimations = ({p, models, games, settings}:
               p.fill(255, 255, 255, 255)
               p.rect(0, 0, p.width, p.height)
             }
-          } else if (i !== father && i !== mother) {
+          } else if (!fathers.includes(i)) {
             p.fill(255, 255, 255, 127)
             p.rect(0, 0, p.width, p.height)
           }
         }
         const k = frame/(settings.framesPerCrossover*settings.animTimeCoef)
-        p.push()
+        for (let i=0; i<fathers.length; i++) {
+          const father = fathers[i]
+          const [fx, fy] = xys[i]
+          p.push()
           transformSubgame(fx+(cx-fx)*k, fy+(cy-fy)*k)
           if (settings.showNN) {
             models[father].draw()
           } else {
             games[father].draw(false)
           }
-        p.pop()
-        p.push()
-          transformSubgame(mx+(cx-mx)*k, my+(cy-my)*k)
-          if (settings.showNN) {
-            models[mother].draw()
-          } else {
-            games[mother].draw(false)
-          }
-        p.pop()
+          p.pop()
+        }
         text_animation.next()
         yield
       }
-      const childModel = crossover(models[father], models[mother])
+      const childModel = crossover(fathers.map(f => models[f]))
       replaced.push(child)
       models[child].dispose()
       models[child] = childModel
