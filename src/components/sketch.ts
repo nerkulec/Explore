@@ -6,6 +6,8 @@ import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
 
+let DEBUG = false
+
 type ValueOf<T> = T[keyof T];
 
 const sketch = (p: P5Instance) => {
@@ -155,9 +157,10 @@ const sketch = (p: P5Instance) => {
       const id = games.map((_, i) => i)
       // eslint-disable-next-line
       for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.getReward()), nn_scale: 0.3})) {}
-
-      p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
-      p.text(`frame: ${frame}`, p.width*0.9, 75)
+      if (DEBUG) {
+        p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
+        p.text(`frame: ${frame}`, p.width*0.9, 75)
+      }
       yield
       if (games_finished) {
         break
@@ -219,8 +222,8 @@ const sketch = (p: P5Instance) => {
     ])
 
     models.forEach(m => m.bump_generation())
-
-    console.log(`generation ${gen_num}`)
+    if (DEBUG)
+      console.log(`generation ${gen_num}`)
   }
 
   p.draw = () => {
@@ -251,7 +254,8 @@ const sketch = (p: P5Instance) => {
     p.fill(0)
     p.textSize(20)
     framerate = 0.9*framerate+0.1*p.frameRate()
-    p.text(`framerate: ${framerate.toFixed(1)}`, p.width*0.91, 33)
+    if (DEBUG)
+      p.text(`framerate: ${framerate.toFixed(1)}`, p.width*0.91, 33)
   }
 }
 
