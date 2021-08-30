@@ -191,6 +191,8 @@ export const getAnimations = ({p, models, games, settings}:
     const replaced: number[] = []
     parents.sort(([c1], [c2]) => inv_rank[c1]-inv_rank[c2])
     yield* nnZoomAnimation(info, 40, 0.3, 1)
+    const old_models = [...models]
+    const to_remove = []
     for (const [child, ...fathers] of parents) {
       const [cx, cy] = getXY(rank.indexOf(child))
       const xys = fathers.map(f => getXY(inv_rank[f]))
@@ -222,11 +224,12 @@ export const getAnimations = ({p, models, games, settings}:
         text_animation.next()
         yield
       }
-      const childModel = crossover(fathers.map(f => models[f]))
+      const childModel = crossover(fathers.map(f => old_models[f]))
       replaced.push(child)
-      models[child].dispose()
+      to_remove.push(models[child])
       models[child] = childModel
     }
+    to_remove.forEach(m => m.dispose())
   }
 
   function* mutationAnimation(info: EvolutionInfo) {

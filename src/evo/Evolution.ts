@@ -91,11 +91,11 @@ export type EvolutionInfo = {
 }
 
 export const getEvolutionInfo = (rewards: number[], models: MyModel[], {
-  numElites: num_elites, numSelects: num_selects, mutationProb: mutation_prob, numAgents: n_agents,
-  mutateElites: mutate_elites, numParents, tournamentSize}: settingsType): EvolutionInfo => {
-  const [selection, matchups, rank] = tournamentSelection(rewards, num_elites, num_selects, tournamentSize)
+  numElites, numSelects: num_selects, mutationProb, numAgents,
+  mutateElites: mutate_elites, numParents, tournamentSize, commaVariant}: settingsType): EvolutionInfo => {
+  const [selection, matchups, rank] = tournamentSelection(rewards, numElites, num_selects, tournamentSize)
   const inv_rank = rank.map((_, i) => rank.indexOf(i))
-  const elites = selection.slice(0, num_elites)
+  const elites = selection.slice(0, numElites)
   const winners = new Set(selection)
   const winnersList = [...winners]
   const losers = models.map((_, i) => i).filter(i => !winners.has(i))
@@ -103,19 +103,27 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], {
   const max_parents_rewards = [] as [number, number][]
   const mutated_rewards = [] as [number, number][]
 
-  for (const loser of losers) {
+  let offspring: number[] = []
+  if (commaVariant) {
+    for (let i=numElites; i<numAgents; i++) {
+      offspring.push(i)
+    }
+  } else {
+    offspring = losers
+  }
+  for (const child of offspring) {
     const fathers = []
     for (let i=0; i<numParents; i++) {
       fathers.push(randomChoice(winnersList))
     }
-    parents.push([loser, ...fathers])
-    max_parents_rewards.push([rank[loser], Math.max(...fathers.map(p => rewards[p]))])
+    parents.push([child, ...fathers])
+    max_parents_rewards.push([rank[child], Math.max(...fathers.map(p => rewards[p]))])
   }
 
   const mutants: number[] = []
-  for (let i=0; i<n_agents; i++) {
+  for (let i=0; i<numAgents; i++) {
     if (mutate_elites || !elites.includes(i)) {
-      if (Math.random() < mutation_prob) {
+      if (Math.random() < mutationProb) {
         mutants.push(i)
         mutated_rewards.push([rank[i], rewards[i]])
       }

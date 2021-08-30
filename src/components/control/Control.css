@@ -80,8 +80,8 @@ input:focus {
   background-color: rgb(58, 58, 58);
   color: rgb(255, 255, 255);
   text-align: center;
-  width: 280px;
-  padding: 2px 0;
+  min-width: 200px;
+  padding: 2px 4px;
   border-radius: 5px;
   left: 105%;
   align-self: center;

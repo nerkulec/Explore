@@ -36,20 +36,21 @@ export default function Navbar({
         </div>
       </div>
       <div className='navbar-column'>
-        <span>Algorithm: ({settings.numSelects}/{settings.numParents}{settings.commaVariant ? ', ' : '+'}{settings.numAgents})-ES
+        <span>Algorithm: (μ/ρ{settings.commaVariant ? ', ' : '+'}λ)-ES,
+          μ={settings.numSelects}, ρ={settings.numParents}, λ={settings.numAgents}
           <div className='control-el tooltip'>
-            <span className='tooltiptext'>ES Algorithm variant</span>
-            <button onClick={() => setSettingCb('commaVariant')(b => !b)}>Switch</button>
+            <span className='tooltiptext'>ES Algorithm variant:<br/> (μ/ρ, λ)-ES vs  (μ/ρ+λ)-ES</span>
+            <button onClick={() => setSettingCb('commaVariant')(b => !b)}>Switch variant</button>
           </div>        
         </span>
         <div className='row'>
           <div className='column'>
             <Control min={settings.numSelects} max={100} value={settings.numAgents} setValue={setSetting('numAgents')}
-              label='Population size'
+              label='Population size (λ)'
               tooltip='Number of agents in the population'
             />
             <Control min={Math.max(settings.numElites, 1)} max={settings.numAgents-1} value={settings.numSelects} setValue={setSetting('numSelects')}
-              label='Number of survivors'
+              label='Number of survivors (μ)'
               tooltip='Number of agents that survive the elimination phase and can pass on their genes'
             />
             <Control min={0} max={settings.numSelects} value={settings.numElites} setValue={setSetting('numElites')}
@@ -59,8 +60,8 @@ export default function Navbar({
           </div>
           <div className='column'>
             <Control min={1} max={settings.numSelects} value={settings.numParents} setValue={setSetting('numParents')}
-              label='Number of parents'
-              tooltip='Number of parents involved in the procreation of an offspring'
+              label='Number of parents (ρ)'
+              tooltip='Number of parents involved in the procreation of an offspring - mixing coefficient'
             />
             <Control min={2} max={Math.min(settings.numSelects, 6)} value={settings.tournamentSize} setValue={setSetting('tournamentSize')}
               label='Tournament size'
@@ -68,10 +69,6 @@ export default function Navbar({
             />
           </div>
           <div className='column'>
-            {/* <div className='control-el tooltip'>
-              <label>Mutate elites?</label>
-              <input type='checkbox' onChange={() => setSettingCb('mutateElites')(b => !b)}/>
-            </div> */}
             <Control min={0} max={100} step={5} value={settings.mutationProb} setValue={setSetting('mutationProb')}
               label='Mutation probability' unit='%'
               tooltip='Probability of random mutation'
