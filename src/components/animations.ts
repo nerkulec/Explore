@@ -250,7 +250,7 @@ export const getAnimations = ({p, models, games, settings}:
         models[i].generations_since_mutated = 0
       }
     }
-    yield* nnZoomAnimation(info, 40, 1, 0.3)
+    yield* nnZoomAnimation({...info, winners: models.map((m, i) => i)}, 40, 1, 0.3)
   }
 
   return {
