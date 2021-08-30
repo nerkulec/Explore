@@ -105,7 +105,8 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], {
 
   let offspring: number[] = []
   if (commaVariant) {
-    for (let i=numElites; i<numAgents; i++) {
+    for (let i=0; i<numAgents; i++) {
+      if (!elites.includes(i))
       offspring.push(i)
     }
   } else {

@@ -194,7 +194,7 @@ export const getAnimations = ({p, models, games, settings}:
     const old_models = [...models]
     const to_remove = []
     for (const [child, ...fathers] of parents) {
-      const [cx, cy] = getXY(rank.indexOf(child))
+      const [cx, cy] = getXY(inv_rank[child])
       const xys = fathers.map(f => getXY(inv_rank[f]))
       for (let frame=0; frame<settings.framesPerCrossover*settings.animTimeCoef; frame++) {
         for (const i of gamesIter({winners, rank, rewards, nn_scale: 1})) {
