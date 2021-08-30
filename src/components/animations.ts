@@ -202,6 +202,9 @@ export const getAnimations = ({p, models, games, settings}:
             if (!replaced.includes(i)) {
               p.fill(255, 255, 255, 255)
               p.rect(0, 0, p.width, p.height)
+            } else {
+              p.fill(255, 255, 255, 127)
+              p.rect(0, 0, p.width, p.height)
             }
           } else if (!fathers.includes(i)) {
             p.fill(255, 255, 255, 127)
