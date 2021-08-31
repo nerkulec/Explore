@@ -17,7 +17,7 @@ export default function Navbar({
   return (
     <div className='navbar'>
       <div className='navbar-column'>
-        <span>Environment</span>
+        <span className='column-header'>Environment</span>
         <div className='row'>
           <div className='column'>
             <div className='control-el'>
@@ -36,11 +36,11 @@ export default function Navbar({
         </div>
       </div>
       <div className='navbar-column'>
-        <span>Algorithm: (μ/ρ{settings.commaVariant ? ', ' : '+'}λ)-ES,
+        <span className='column-header'>Algorithm: (μ/ρ{settings.commaVariant ? ', ' : '+'}λ)-ES,
           μ={settings.numSelects}, ρ={settings.numParents}, λ={settings.numAgents}
           <div className='control-el tooltip'>
             <span className='tooltiptext'>ES Algorithm variant:<br/> (μ/ρ, λ)-ES vs  (μ/ρ+λ)-ES</span>
-            <button onClick={() => setSettingCb('commaVariant')(b => !b)}>Switch variant</button>
+            <button className='button' onClick={() => setSettingCb('commaVariant')(b => !b)}>Switch variant</button>
           </div>        
         </span>
         <div className='row'>
@@ -63,7 +63,7 @@ export default function Navbar({
               label='Number of parents (ρ)'
               tooltip='Number of parents involved in the procreation of an offspring - mixing coefficient'
             />
-            <Control min={2} max={Math.min(settings.numSelects, 10)} value={settings.tournamentSize} setValue={setSetting('tournamentSize')}
+            <Control min={2} max={Math.min(settings.numSelects, 6)} value={settings.tournamentSize} setValue={setSetting('tournamentSize')}
               label='Tournament size'
               tooltip='Number of agents taking part in a single tournament round'
             />
@@ -82,7 +82,7 @@ export default function Navbar({
         </div>
       </div>
       <div className='navbar-column'>
-        <span>Animation</span>
+        <span className='column-header'>Animation</span>
         <div className='row'>
           <div className='column'>
             <Control min={0} max={200} value={settings.animTimeCoef} setValue={setSetting('animTimeCoef')}

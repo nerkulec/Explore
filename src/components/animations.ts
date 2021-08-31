@@ -75,7 +75,7 @@ export const getAnimations = ({p, models, games, settings}:
       p.fill(0, 0, 0, 255*f)
       p.textAlign(p.CENTER)
       p.textSize(40)
-      p.text(text, p.width/2, p.height/2)
+      p.text(text, p.width/2, p.height*0.4)
       yield
     }
   }
@@ -87,7 +87,8 @@ export const getAnimations = ({p, models, games, settings}:
       for (let i of gamesIter({winners, rank, rewards, nn_scale: from+(to-from)*k})) {
         if (!winners.includes(i)) {
           p.fill(255)
-          p.rect(0, 0, p.width, p.height)
+          p.blendMode((p as any).REMOVE)
+          p.rect(0, 0, p.width*1.01, p.height*1.01)
         }
       }
       yield
@@ -157,6 +158,7 @@ export const getAnimations = ({p, models, games, settings}:
           } else if (winners_so_far.includes(i)) {
             p.fill(...survivor_green)
           } else {
+            p.blendMode((p as any).REMOVE)
             p.fill(255, 255, 255, 127)
           }
           p.rect(0, 0, p.width, p.height)
@@ -173,11 +175,12 @@ export const getAnimations = ({p, models, games, settings}:
     for (let frame=0; frame<settings.framesLosers*settings.animTimeCoef; frame++) {
       for (const i of gamesIter({winners, rank, rewards, nn_scale: 0.3})) {
         if (losers.includes(i)) {
+          p.blendMode((p as any).REMOVE)
           p.fill(255, 255, 255, 255*frame/(settings.framesLosers*settings.animTimeCoef-1))
         } else {
           p.fill(...survivor_green)
         }
-        p.rect(0, 0, p.width, p.height)
+        p.rect(0, 0, p.width*1.01, p.height*1.01)
       }
       text_animation.next()
       yield
@@ -199,16 +202,18 @@ export const getAnimations = ({p, models, games, settings}:
       for (let frame=0; frame<settings.framesPerCrossover*settings.animTimeCoef; frame++) {
         for (const i of gamesIter({winners, rank, rewards, nn_scale: 1})) {
           if (losers.includes(i)) {
+            p.blendMode((p as any).REMOVE)
             if (!replaced.includes(i)) {
               p.fill(255, 255, 255, 255)
-              p.rect(0, 0, p.width, p.height)
+              p.rect(0, 0, p.width*1.01, p.height*1.01)
             } else {
               p.fill(255, 255, 255, 127)
-              p.rect(0, 0, p.width, p.height)
+              p.rect(0, 0, p.width*1.01, p.height*1.01)
             }
           } else if (!fathers.includes(i)) {
+            p.blendMode((p as any).REMOVE)
             p.fill(255, 255, 255, 127)
-            p.rect(0, 0, p.width, p.height)
+            p.rect(0, 0, p.width*1.01, p.height*1.01)
           }
         }
         const k = frame/(settings.framesPerCrossover*settings.animTimeCoef)

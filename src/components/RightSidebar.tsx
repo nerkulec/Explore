@@ -274,7 +274,7 @@ export default function RightSidebar({
   setAgeSinceMutation: (f: (b: boolean) => boolean) => void
 }) {
   return (
-    <div>
+    <div className='right-sidebar'>
       <RewardChart quantiles={quantiles}/>
       <SuccessChart success={mutationSuccess} name="Mutation"/>
       <SuccessChart success={crossoverSuccess} name="Crossover"/>

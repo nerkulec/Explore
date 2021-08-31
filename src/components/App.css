@@ -1,16 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+body {
+  overflow-x: hidden;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  font-weight: 300;
+  background-color: #ffffff;
+}
+
 .App {
   text-align: center;
 }
 
 .wrapper{
-  /* height: 100vh; */
   width: 100vw;
+}
+
+.description{
+  color: rgb(0, 0, 0);
+  padding: 0 10rem 2rem 10rem
 }
 
 .root-wrapper{
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.header{
+  width: 100%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 7rem;
 }
 
 .title-line{
@@ -21,8 +44,6 @@
 .p5Canvas{
   display: block;
   margin: 0 auto;
-  /* margin-left: 0 auto;
-  margin-right: 0 auto; */
   margin-top: 1vh;
 }
 
@@ -47,8 +68,18 @@
   width: 100%;
 }
 
-/* .row:after {
-  content: "";
-  display: table;
-  clear: both;
-} */
+.button{
+  background-color: #4D5057;
+  color: #fff;
+  outline: none;
+  border: 0;
+  padding: 4px 12px;
+  border-radius: 1em;
+  margin-left: 2rem;
+  transition: all 100ms;
+  cursor: pointer;
+}
+
+.button:hover{
+  transform: scale(1.05);
+}

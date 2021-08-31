@@ -227,7 +227,9 @@ const sketch = (p: P5Instance) => {
   }
 
   p.draw = () => {
+    p.blendMode((p as any).REMOVE)
     p.background(255)
+    p.blendMode(p.BLEND)
     p.strokeWeight(0)
     if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
       p.translate(-p.width/2, -p.height/2)
