@@ -113,6 +113,10 @@ export default function Navbar({
           </div>
           <div className='column'>
             {settings.advancedAnimation ? <div className='column'>
+              <Control min={0} max={120} value={settings.framesPermutation} setValue={setSetting('framesPermutation')}
+                label='Permutation animation'
+                tooltip='Length of the permutation animation phase'
+              />
               <Control min={0} max={120} value={settings.framesElites} setValue={setSetting('framesElites')}
                 label='Elites animation'
                 tooltip='Length of the elites animation phase'
@@ -132,10 +136,6 @@ export default function Navbar({
               <Control min={0} max={120} value={settings.framesMutation} setValue={setSetting('framesMutation')}
                 label='Mutation animation'
                 tooltip='Length of the mutation animation phase'
-              />
-              <Control min={0} max={120} value={settings.framesPermutation} setValue={setSetting('framesPermutation')}
-                label='Permutation animation'
-                tooltip='Length of the permutation animation phase'
               />
             </div> : null }
           </div>
