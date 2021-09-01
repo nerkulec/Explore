@@ -21,7 +21,7 @@ const Question: React.FC<Props> = ({
   return (
   <div className='Question'>
     <h1 onClick={() => setShown(true)}>{question}</h1>
-    {shown ? <div className='answer'>
+    {shown ? <div className='answer fade-in'>
       {answer}
       {nextQuestions.map((q, i) => <Question question={q} key={i}/>)}
     </div> : null}

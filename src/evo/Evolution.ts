@@ -48,13 +48,14 @@ export const tournamentSelection = (rewards: number[], numElites: number, numSel
   return [winners, matchups, rank]
 }
 
-export const mutate = (model: MyModel, {adaptMutationRate, numAgents, mutationRate}: settingsType) => {
+export const mutate = (model: MyModel, {adaptMutationRate, numAgents, mutationRate, mutationProb}: settingsType) => {
   if (adaptMutationRate)
     model.mutation_coef *= Math.exp(randn()/Math.sqrt(2*numAgents))
   for (const layer of model.layers) {
     const weights = layer.getWeights()
     for (let i=0; i<weights.length; i++) {
-      weights[i] = tf.add(weights[i], tf.randomNormal(weights[i].shape, 0, mutationRate*model.mutation_coef))
+      const chosen = tf.less(tf.randomUniform(weights[i].shape), mutationProb)
+      weights[i] = tf.add(weights[i], tf.mul(chosen, tf.randomNormal(weights[i].shape, 0, mutationRate*model.mutation_coef)))
     }
     layer.setWeights(weights)
   }
@@ -129,10 +130,8 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], {
   const mutants: number[] = []
   for (let i=0; i<numAgents; i++) {
     if (mutate_elites || !elites.includes(i)) {
-      if (Math.random() < mutationProb) {
-        mutants.push(i)
-        mutated_rewards.push([rank[i], rewards[i]])
-      }
+      mutants.push(i)
+      mutated_rewards.push([rank[i], rewards[i]])
     }
   }
 
