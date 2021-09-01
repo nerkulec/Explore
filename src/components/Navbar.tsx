@@ -112,7 +112,7 @@ export default function Navbar({
                 label='Elites animation'
                 tooltip='Length of the elites animation phase'
               />
-              <Control min={0} max={40} value={settings.framesPerPair} setValue={setSetting('framesPerPair')}
+              <Control min={0} max={60} value={settings.framesPerPair} setValue={setSetting('framesPerPair')}
                 label='Selection animation'
                 tooltip='Length of the one tournament selection animation'
               />
@@ -120,7 +120,7 @@ export default function Navbar({
                 label='Losers animation'
                 tooltip='Length of the losers animation phase'
               />
-              <Control min={0} max={40} value={settings.framesPerCrossover} setValue={setSetting('framesPerCrossover')}
+              <Control min={0} max={60} value={settings.framesPerCrossover} setValue={setSetting('framesPerCrossover')}
                 label='Crossover animation'
                 tooltip='Length of the crossover animation phase'
               />

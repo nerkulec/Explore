@@ -1,4 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
+
+html {
+  height: auto !important;
+  padding-bottom: 1200px !important;
+}
 
 body {
   overflow-x: hidden;
@@ -17,6 +23,7 @@ body {
 }
 
 .description{
+  font-family: 'Open Sans', sans-serif;
   color: rgb(0, 0, 0);
   padding: 0 10rem 2rem 10rem
 }
