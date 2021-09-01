@@ -18,7 +18,7 @@ const sketch = (p: P5Instance) => {
     numAgentsToBe: 36,
     epLen: 600,
     animTimeCoef: 1,
-    mutationRate: 0.1,
+    mutationRate: 1,
     mutationProb: 100,
     mutateElites: false,
     adaptMutationRate: false,

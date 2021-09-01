@@ -24,7 +24,7 @@ function App() {
     numAgentsToBe: 36,
     epLen: 200,
     animTimeCoef: 100,
-    mutationRate: 7,
+    mutationRate: 13,
     mutationProb: 100,
     mutateElites: false,
     adaptMutationRate: false,
