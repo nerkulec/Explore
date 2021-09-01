@@ -246,9 +246,10 @@ export const getAnimations = ({p, models, games, settings}:
     const n = models.length
     for (let frame=0; frame<settings.framesMutation*settings.animTimeCoef; frame++) {
       const k = frame/(settings.framesMutation*settings.animTimeCoef-1)
-      p.fill(0, 0, 255, 127*(1-Math.cos(k*2*Math.PI)/2))
       for (const i of gamesIter({winners, rank, nn_scale: 1})) {
         if (mutants.includes(i)) {
+          const factor = Math.tanh(10*Math.log(models[i].mutation_coef))*0.5+0.5
+          p.fill(0, 0, 255, factor*127*(1-Math.cos(k*2*Math.PI)/2))
           p.rect(0, 0, p.width, p.height)
         }
       }
@@ -257,7 +258,7 @@ export const getAnimations = ({p, models, games, settings}:
     }
     for (let i=0; i<n; i++) {
       if (mutants.includes(i)) {
-        mutate(models[i], settings.mutationRate)
+        mutate(models[i], settings)
         models[i].generations_since_mutated = 0
       }
     }

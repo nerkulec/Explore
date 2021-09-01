@@ -19,8 +19,9 @@ const sketch = (p: P5Instance) => {
     epLen: 600,
     animTimeCoef: 1,
     mutationRate: 0.1,
-    mutationProb: 50,
+    mutationProb: 100,
     mutateElites: false,
+    adaptMutationRate: false,
     commaVariant: false,
     loops: 1,
     numElites: 4,
@@ -34,7 +35,7 @@ const sketch = (p: P5Instance) => {
     framesMutation: 90,
     framesPermutation: 90,
     framesFadeIn: 20,
-    showNN: false,
+    showNN: true,
     advancedAnimation: false
   }
   const games: Game[] = []

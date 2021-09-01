@@ -20,7 +20,7 @@ export default function Navbar({
         <span className='column-header'>Environment</span>
         <div className='row'>
           <div className='column'>
-            <div className='control-el'>
+            <div className='control-el column'>
               <label>Choose enveironment</label>
               <select value={settings.env} onChange={e => setEnv(e.target.value)}>
                 <option>Cheetah</option>
@@ -78,6 +78,11 @@ export default function Navbar({
               label='Mutation rate'
               tooltip='Standard deviation of random Gaussian variable added to parameters'
             />
+            <div className='control-el tooltip'>
+              <span className='tooltiptext'>Whether to adapt the mutation rate of individuals</span>
+              <label>Adapt mutation rate</label>
+              <input type='checkbox' onChange={() => setSettingCb('adaptMutationRate')(b => !b)} checked={settings.adaptMutationRate} />
+            </div>
           </div>
         </div>
       </div>

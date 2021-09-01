@@ -25,8 +25,9 @@ function App() {
     epLen: 200,
     animTimeCoef: 100,
     mutationRate: 7,
-    mutationProb: 50,
+    mutationProb: 100,
     mutateElites: false,
+    adaptMutationRate: false,
     commaVariant: false,
     loops: 1,
     numElites: 4,
@@ -40,7 +41,7 @@ function App() {
     framesMutation: 90,
     framesPermutation: 90,
     framesFadeIn: 20,
-    showNN: false,
+    showNN: true,
     advancedAnimation: false
   })
   const setSetting = (setting: keyof settingsType) => (value: any) => setSettings(settings => ({...settings, [setting]: value}))
@@ -82,15 +83,15 @@ function App() {
   return <div className='root-wrapper'>
     <div className='header'>
       <div className='title'>
-        <span className='title-line'>Tinker with Neuro-Evolution in real time!</span><br/>
-        <span className='title-line'>{
+        <span className='title-line'>Tinker with Evolution Strategies (ES) in real time!</span><br/>
+        {/* <span className='title-line'>{
           settings.env === 'Cheetah' ? 'Reach the furthest in 600 frames' :
           settings.env === 'Acrobot' ? 'Swing upwards in least amount of time' :
           settings.env === 'Mountain car' ? 'Climb the hill using the least amount of fuel' :
           null}
-        </span>
+        </span> */}
       </div>
-      <button className='button' onClick={handleAnchorClick}>Scroll to explanation</button>
+      <button className='button' onClick={handleAnchorClick}>What is this?</button>
     </div>
     <Navbar
       setEnv={setEnvWithReset}

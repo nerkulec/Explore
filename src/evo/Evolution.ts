@@ -24,6 +24,8 @@ export const permute = <T>(elems: T[], rank: number[]) => {
   }
 }
 
+const randn = () => Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random())
+
 export const tournamentSelection = (rewards: number[], numElites: number, numSelects: number, tournamentSize: number):
   [number[], number[][], number[]] => {
   const rank = argsort(rewards).reverse()
@@ -46,11 +48,13 @@ export const tournamentSelection = (rewards: number[], numElites: number, numSel
   return [winners, matchups, rank]
 }
 
-export const mutate = (model: MyModel, mutation_rate = 0.1) => {
+export const mutate = (model: MyModel, {adaptMutationRate, numAgents, mutationRate}: settingsType) => {
+  if (adaptMutationRate)
+    model.mutation_coef *= Math.exp(randn()/Math.sqrt(2*numAgents))
   for (const layer of model.layers) {
     const weights = layer.getWeights()
     for (let i=0; i<weights.length; i++) {
-      weights[i] = tf.add(weights[i], tf.randomNormal(weights[i].shape, 0, mutation_rate))
+      weights[i] = tf.add(weights[i], tf.randomNormal(weights[i].shape, 0, mutationRate*model.mutation_coef))
     }
     layer.setWeights(weights)
   }
@@ -73,6 +77,7 @@ export const crossover = (parents: MyModel[]): MyModel => {
     }
   }
   child.setMemoizedWeights(child_weights)
+  child.mutation_coef = Math.exp(parents.map(p => Math.log(p.mutation_coef)).reduce((a, b)=>a+b, 0)/parents.length)
   return child
 }
 

@@ -9,6 +9,7 @@ export type settingsType = {
   mutationRate: number,
   mutationProb: number,
   mutateElites: boolean,
+  adaptMutationRate: boolean,
   commaVariant: boolean,
   loops: number,
   numElites: number,
