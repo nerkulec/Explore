@@ -1,12 +1,7 @@
 .right-sidebar {
   padding-top: 3px;
-  background-color: #A4B8C4;
+  background-color: #222222;
   border: 1px solid #4D5057;
-}
-
-text {
-  font-family: sans-serif;
-  color: rgb(0, 0, 0);
 }
 
 .line-path {
@@ -33,16 +28,16 @@ text {
 
 .tick text {
   font-size: 1.5em;
-  fill: rgb(0, 0, 0);
+  fill: #FFFFFF;
 }
 
 .tick line {
-  stroke: #012a4a;
+  stroke: #000000;
 }
 
 .title {
   font-size: 1.2em;
-  fill: rgb(0, 0, 0);
+  fill: #FFFFFF;
 }
 
 svg {
