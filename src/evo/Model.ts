@@ -11,7 +11,7 @@ export class MyModel extends tf.Sequential {
   id: number
   generations_since_mutated = 0
   generations_since_created = 0
-  mutation_coef = 1
+  mutation_coef = 0
   constructor(p: P5Instance, inputDim: number, units: number[]) {
     super()
     this.p = p

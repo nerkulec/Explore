@@ -50,12 +50,12 @@ export const tournamentSelection = (rewards: number[], numElites: number, numSel
 
 export const mutate = (model: MyModel, {adaptMutationRate, numAgents, mutationRate, mutationProb}: settingsType) => {
   if (adaptMutationRate)
-    model.mutation_coef *= Math.exp(randn()/Math.sqrt(2*numAgents))
+    model.mutation_coef += Math.random() < 0.5 ? 0.3 : -0.3
   for (const layer of model.layers) {
     const weights = layer.getWeights()
     for (let i=0; i<weights.length; i++) {
       const chosen = tf.less(tf.randomUniform(weights[i].shape), mutationProb)
-      weights[i] = tf.add(weights[i], tf.mul(chosen, tf.randomNormal(weights[i].shape, 0, mutationRate*model.mutation_coef)))
+      weights[i] = tf.add(weights[i], tf.mul(chosen, tf.randomNormal(weights[i].shape, 0, mutationRate*Math.exp(model.mutation_coef))))
     }
     layer.setWeights(weights)
   }
