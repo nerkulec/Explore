@@ -1,6 +1,10 @@
 import { World, Body, Plane } from "p2"
 import { P5Instance } from "../components/P5Wrapper"
-import { Acrobot, AcrobotActionSpace, AcrobotObservationSpace, Cheetah, CheetahActionSpace, CheetahObservationSpace } from "./Agent"
+import { Acrobot, AcrobotActionSpace, AcrobotObservationSpace,
+  Cheetah, CheetahActionSpace, CheetahObservationSpace, rotate, add, sub, v2 } from "./Agent"
+
+const limit = (value: number, max: number) => value < -max
+  ? -max : value > max ? max : value
 
 export interface Game {
   reset(): void
@@ -59,6 +63,14 @@ export class CheetahGame extends PhysicsGame {
   update(torque: CheetahActionSpace) {
     this.cheetah.applyTorque(torque)
     this.world.step(this.fixedTimestep)
+    this.cheetah.bodies.forEach(b => b.angularVelocity = limit(b.angularVelocity, 4))
+    const leg = this.cheetah.bodies[6]
+    const leg_lenght = this.cheetah.lengths[2]
+    const foot = this.cheetah.bodies[7]
+    const foot_length = this.cheetah.lengths[3]
+    const leg_v = add(leg.position as v2, rotate([leg_lenght/2, 0], leg.angle))
+    const foot_v = add(foot.position as v2, rotate([-foot_length/2, 0], foot.angle))
+    foot.position = add(foot.position as v2,  sub(leg_v, foot_v))
   }
 
   draw(draw_background = true) {

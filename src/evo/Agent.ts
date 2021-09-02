@@ -37,10 +37,18 @@ export const drawBody = (p: P5Instance, body: Body) => {
   }
   p.pop()
 }
-type v2 = [number, number]
-const add = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1+x2, y1+y2]
-const sub = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1-x2, y1-y2]
-const sum = (xs: number[]): number => xs.reduce((s, x) => s+x, 0)
+export type v2 = [number, number]
+export const add = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1+x2, y1+y2]
+export const sub = ([x1, y1]: v2, [x2, y2]: v2): v2 => [x1-x2, y1-y2]
+export const sum = (xs: number[]): number => xs.reduce((s, x) => s+x, 0)
+export const rotate = ([x, y]: v2, angle: number): v2 => {
+  const c = Math.cos(angle)
+  const s = Math.sin(angle)
+  return [x*c-y*s, x*s+y*c]
+}
+// x = x*cosβ x − y*sinβ
+// y = x*sinβ x + y*cosβ
+ 
 
 export type CheetahActionSpace = [number, number, number, number, number, number]
 export type CheetahObservationSpace =
@@ -55,7 +63,7 @@ export class Cheetah extends PhysicsAgent {
   fleg: [Body, Body, Body]
   head: Body
   torque_scale: number = 50
-  torque_coefs: CheetahActionSpace = [2, 1, 1, 1.2, 1, 0.5]
+  torque_coefs: CheetahActionSpace = [2, 1, 1, 1.2, 1, 0.2]
   lengths: [number, number, number, number]
   rleg_joints: [Body, Body, Body, Body]
   fleg_joints: [Body, Body, Body, Body]
@@ -101,7 +109,7 @@ export class Cheetah extends PhysicsAgent {
     this.fleg_joints = [this.torso, ...this.fleg]
     // springs
     const stiffness = 150
-    const damping = 1.5
+    const damping = 0.9
     for (let i=0; i<3; i++) {
       this.springs.push(new RotationalSpring(
         this.rleg_joints[i], this.rleg_joints[i+1], {
@@ -201,8 +209,8 @@ export class Cheetah extends PhysicsAgent {
   }
 
   applyTorque(torque: CheetahActionSpace) {
-    const limbs_a = [this.rleg[0], this.rleg[1], this.rleg[2], ...this.fleg]
-    const limbs_b = [this.torso, this.rleg[0], this.rleg[1], this.torso, ...this.fleg]
+    const limbs_a = [this.rleg[0], this.rleg[1], this.rleg[2], this.fleg[0], this.fleg[1], this.fleg[2]]
+    const limbs_b = [this.torso,   this.rleg[0], this.rleg[1], this.torso,   this.fleg[0], this.fleg[1]]
     for (let i=0; i<6; i++) {
       limbs_a[i].angularForce += torque[i]*this.torque_scale*this.torque_coefs[i]
       limbs_b[i].angularForce -= torque[i]*this.torque_scale*this.torque_coefs[i]
