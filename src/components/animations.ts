@@ -248,7 +248,7 @@ export const getAnimations = ({p, models, games, settings}:
       const k = frame/(settings.framesMutation*settings.animTimeCoef-1)
       for (const i of gamesIter({winners, rank, nn_scale: 1})) {
         if (mutants.includes(i)) {
-          const factor = Math.tanh(0.1*Math.log(models[i].mutation_coef))*0.5+0.5
+          const factor = Math.tanh(0.1*models[i].mutation_coef)*0.5+0.5
           p.fill(0, 0, 255, factor*127*(1-Math.cos(k*2*Math.PI)/2))
           p.rect(0, 0, p.width, p.height)
         }
