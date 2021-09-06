@@ -14,6 +14,7 @@ const sketch = (p: P5Instance) => {
   let Environment: ValueOf<typeof environments> = CheetahGame
   const settings: settingsType = {
     env: 'Cheetah',
+    deterministic: true,
     numAgents: 36,
     numAgentsToBe: 36,
     epLen: 600,
@@ -83,7 +84,6 @@ const sketch = (p: P5Instance) => {
       for (let i=0; i<settings.numAgents; i++) {
         models.push(getModel(p, settings.env))
         const game = new Environment(p)
-        game.reset()
         games.push(game)
       }
       current_animation = null

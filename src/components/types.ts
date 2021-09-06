@@ -2,6 +2,7 @@ import { envString } from "../evo/Model"
 
 export type settingsType = {
   env: envString,
+  deterministic: boolean,
   numAgents: number,
   numAgentsToBe: number,
   epLen: number,

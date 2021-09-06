@@ -20,6 +20,7 @@ const mutationRateValues = [
 function App() {
   const [settings, setSettings] = useState<settingsType>({
     env: 'Cheetah',
+    deterministic: true,
     numAgents: 36,
     numAgentsToBe: 36,
     epLen: 200,

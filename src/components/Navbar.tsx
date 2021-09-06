@@ -21,7 +21,7 @@ export default function Navbar({
         <div className='row'>
           <div className='column'>
             <div className='control-el column'>
-              <label>Choose enveironment</label>
+              <label>Choose environment</label>
               <select value={settings.env} onChange={e => setEnv(e.target.value)}>
                 <option>Cheetah</option>
                 <option>Acrobot</option>
@@ -32,6 +32,11 @@ export default function Navbar({
               label='Episode length'
               tooltip='Length of the episode, measured in frames'
             />
+            <div className='control-el tooltip'>
+              <span className='tooltiptext'>When unchecked, random perturbations are applied to the agent in the beginning of the episode</span>
+              <label>Deterministic environment</label>
+              <input type='checkbox' onChange={() => setSettingCb('deterministic')(b => !b)} checked={settings.deterministic} />
+            </div>
           </div>
         </div>
       </div>

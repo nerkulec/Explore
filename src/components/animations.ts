@@ -186,6 +186,9 @@ export const getAnimations = ({p, models, games, settings}:
       yield
     }
     games.forEach(g => g.reset())
+    if (!settings.deterministic) {
+      games.forEach(g => g.perturb())
+    }
   }
 
   function* crossoverAnimation(info: EvolutionInfo) {

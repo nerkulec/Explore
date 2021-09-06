@@ -6,8 +6,11 @@ import { Acrobot, AcrobotActionSpace, AcrobotObservationSpace,
 const limit = (value: number, max: number) => value < -max
   ? -max : value > max ? max : value
 
+const rand = () => Math.random()*2-1
+
 export interface Game {
   reset(): void
+  perturb(): void
   update(action: number[]): void
   getObservation(): number[]
   draw(...options: any): void
@@ -25,6 +28,7 @@ abstract class PhysicsGame implements Game {
   reset() {
     this.terminated = false
   }
+  abstract perturb(): void
   abstract getObservation(): number[]
   abstract update(action: number[]): void
   abstract draw(): void
@@ -121,6 +125,10 @@ export class CheetahGame extends PhysicsGame {
     this.cheetah.reset()
     return observation
   }
+
+  perturb(): void {
+    this.cheetah.bodies.forEach(b => b.angularVelocity += rand()*0.1)
+  }
 }
 
 export class AcrobotGame extends PhysicsGame {
@@ -197,6 +205,10 @@ export class AcrobotGame extends PhysicsGame {
     const observation = this.getObservation()
     this.acrobot.reset()
     return observation
+  }
+
+  perturb(): void {
+    this.acrobot.bodies.forEach(b => b.angularVelocity += rand())
   }
 }
 
@@ -290,6 +302,10 @@ export class MountainCarGame implements Game {
     this.fuel_used = 0
     this.max_height_reached = MountainCarGame.min_height
     return observation
+  }
+
+  perturb(): void {
+    this.vx += rand()*0.01
   }
 
   draw(draw_background=true) {
