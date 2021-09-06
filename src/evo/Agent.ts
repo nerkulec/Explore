@@ -51,8 +51,10 @@ export const rotate = ([x, y]: v2, angle: number): v2 => {
  
 
 export type CheetahActionSpace = [number, number, number, number, number, number]
-export type CheetahObservationSpace =
-  [number, number, number, number, number, number, number, number]
+export type CheetahObservationSpace = [
+  number, number, number, number, number, number, number, number,
+  number, number, number, number, number, number, number, number, number
+]
 
 export class Cheetah extends PhysicsAgent {
   bodies: Body[]
@@ -205,6 +207,15 @@ export class Cheetah extends PhysicsAgent {
       this.fleg[0].angle - this.torso.angle,
       this.fleg[1].angle-this.fleg[0].angle,
       this.fleg[2].angle-this.fleg[1].angle,
+      this.torso.velocity[0],
+      this.torso.velocity[1],
+      this.torso.angularVelocity,
+      this.rleg[0].angularVelocity - this.torso.angularVelocity,
+      this.rleg[1].angularVelocity-this.rleg[0].angularVelocity,
+      this.rleg[2].angularVelocity-this.rleg[1].angularVelocity,
+      this.fleg[0].angularVelocity - this.torso.angularVelocity,
+      this.fleg[1].angularVelocity-this.fleg[0].angularVelocity,
+      this.fleg[2].angularVelocity-this.fleg[1].angularVelocity,
     ]
   }
 

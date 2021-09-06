@@ -36,13 +36,13 @@ export class CheetahGame extends PhysicsGame {
   fixedTimestep: number = 1/60
   ground: Body
   cheetah: Cheetah
-  static obs_size = 8
+  static obs_size = 17
   static act_size = 6
 
   constructor(p5: P5Instance) {
     super(p5)
     this.world = new World({
-      gravity : [0, -9],
+      gravity : [0, -9*2],
     })
     this.world.defaultContactMaterial.friction = 8
     this.ground = new Body({
