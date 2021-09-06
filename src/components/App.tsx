@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react"
+import React, {useState} from "react"
 import "./App.css"
 import Navbar from "./Navbar"
 import { P5Wrapper } from "./P5Wrapper"
@@ -60,16 +60,16 @@ function App() {
   const appendCrossoverSuccess = (ms: number) => setCrossoverSuccess(mss => [...mss, ms])
   const [ageSinceMutation, setAgeSinceMutation] = useState(false)
 
-  const [anchorTarget, setAnchorTarger] = useState<HTMLElement | null>(null);
+  // const [anchorTarget, setAnchorTarger] = useState<HTMLElement | null>(null);
 
-  useEffect(() => {
-    setAnchorTarger(document.getElementById('description'));
-  }, [])
+  // useEffect(() => {
+  //   setAnchorTarger(document.getElementById('description'));
+  // }, [])
 
-  const handleAnchorClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    anchorTarget?.scrollIntoView({behavior: 'smooth', block: 'start'})
-  }
+  // const handleAnchorClick = (event: React.MouseEvent) => {
+  //   event.preventDefault();
+  //   anchorTarget?.scrollIntoView({behavior: 'smooth', block: 'start'})
+  // }
   
   const setEnvWithReset = (env: string): void => {
     setQuantiles([[], [], [], [], []])

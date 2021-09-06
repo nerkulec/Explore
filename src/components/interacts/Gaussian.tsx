@@ -3,10 +3,7 @@ import { useState } from "react"
 import Control from "../control/Control"
 import { useD3 } from "../RightSidebar"
 import {
-  select,
   scaleLinear,
-  axisRight,
-  axisBottom,
   line,
   range
 } from 'd3'
@@ -41,8 +38,6 @@ const GaussianPlot = ({matrix, randoms}: {matrix: number[], randoms: [number, nu
     const areaGenerator = line()
       .x(([x, y]) => xScale(x as any))
       .y(([x, y]) => yScale(y as any))
-
-    const n = randoms.length
 
     const m = 100
     const radiai = [10, 8, 6, 4, 2]
@@ -91,9 +86,7 @@ type Props = {
 }
 
 // !!! A FULL
-const Gaussian: React.FC<Props> = ({
-  
-}) => {
+const Gaussian: React.FC<Props> = () => {
   const [matrix, setMatrix] = useState(() => [1, 0, 0, 1])
   const [randoms, setRandoms] = useState<[number, number][]>(() => [])
 
