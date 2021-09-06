@@ -52,7 +52,7 @@ export const rotate = ([x, y]: v2, angle: number): v2 => {
 
 export type CheetahActionSpace = [number, number, number, number, number, number]
 export type CheetahObservationSpace =
-  [number, number, number, number, number, number, number, number, number, number]
+  [number, number, number, number, number, number, number, number]
 
 export class Cheetah extends PhysicsAgent {
   bodies: Body[]
@@ -63,7 +63,7 @@ export class Cheetah extends PhysicsAgent {
   fleg: [Body, Body, Body]
   head: Body
   torque_scale: number = 50
-  torque_coefs: CheetahActionSpace = [2, 1, 1, 1.2, 1, 0.2]
+  torque_coefs: CheetahActionSpace = [3, 1.5, 1, 1.5, 1.5, 0.2]
   lengths: [number, number, number, number]
   rleg_joints: [Body, Body, Body, Body]
   fleg_joints: [Body, Body, Body, Body]
@@ -82,7 +82,7 @@ export class Cheetah extends PhysicsAgent {
     this.constraints = []
     this.springs = []
     const torso_shape = new Capsule({length, radius: margin})
-    this.torso = new Body({mass: length, position : [0, start_y]})
+    this.torso = new Body({mass: length*2, position : [0, start_y]})
     this.torso.addShape(torso_shape)
     const head_shape = new Capsule({length: leg_height, radius: margin})
     this.head = new Body({mass: 0.01, position : [length/2+leg_height/2, start_y]})
@@ -195,8 +195,8 @@ export class Cheetah extends PhysicsAgent {
 
   getObservation(): CheetahObservationSpace {
     return [
-      Math.cos(2*Math.PI*this.torso.position[0]/10),
-      Math.sin(2*Math.PI*this.torso.position[0]/10),
+      // Math.cos(2*Math.PI*this.torso.position[0]/10),
+      // Math.sin(2*Math.PI*this.torso.position[0]/10),
       this.torso.position[1],
       this.torso.angle,
       this.rleg[0].angle - this.torso.angle,

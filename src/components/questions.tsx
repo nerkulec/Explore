@@ -1,5 +1,6 @@
 import { questionType } from "./questions/Question"
 import MathJax from 'react-mathjax'
+import Gaussian from "./interacts/Gaussian"
 
 const { Provider, Node } = MathJax
 
@@ -20,7 +21,13 @@ q('What is this?', 'What you are seeing is an interactive introduction to Evolut
       is to find an optimal solution ${[`\\theta^\\ast = argmax_{\\theta \\in \\Theta}{F(\\theta)}`]}
       where ${`F`} is called the objective function or fitness`),
     q('How do they work?', `They work by maintaining a population of candidate solutions on which selection, crossover and mutation
-      operators are applied`)
+      operators are applied`, [
+      q('How does selection work?', <div></div>),
+      q('How does crossover work?', <div></div>),
+      q('How does mutation work?', <div>
+        <Gaussian/>
+      </div>)
+    ])
   ])
 ])
 

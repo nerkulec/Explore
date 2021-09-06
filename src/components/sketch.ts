@@ -112,8 +112,8 @@ const sketch = (p: P5Instance) => {
       const model = models[i]
       if (!game.terminated) {
         const obs = game.getObservation()
-        const action = (model.predict(tf.tensor2d([obs])) as any).arraySync()
-        game.update(action[0])
+        const action = (model.predict(tf.tensor2d([obs])) as any).arraySync()[0] as number[]
+        game.update(action)
       }
     }
   }

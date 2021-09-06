@@ -24,7 +24,7 @@ export const permute = <T>(elems: T[], rank: number[]) => {
   }
 }
 
-const randn = () => Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random())
+export const randn = () => Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random())
 
 export const tournamentSelection = (rewards: number[], numElites: number, numSelects: number, tournamentSize: number):
   [number[], number[][], number[]] => {
@@ -78,7 +78,7 @@ export const crossover = (parents: MyModel[]): MyModel => {
     }
   }
   child.setMemoizedWeights(child_weights)
-  child.mutation_coef = Math.exp(parents.map(p => Math.log(p.mutation_coef)).reduce((a, b)=>a+b, 0)/parents.length)
+  child.mutation_coef = parents.map(p => p.mutation_coef).reduce((a, b)=>a+b, 0)/parents.length
   return child
 }
 

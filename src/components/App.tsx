@@ -91,7 +91,7 @@ function App() {
           null}
         </span> */}
       </div>
-      <button className='button' onClick={handleAnchorClick}>What is this?</button>
+      {/* <button className='button' onClick={handleAnchorClick}>What is this?</button> */}
     </div>
     <Navbar
       setEnv={setEnvWithReset}
