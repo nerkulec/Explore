@@ -131,6 +131,11 @@ export const getEvolutionInfo = (rewards: number[], models: MyModel[], {
   for (let i=0; i<numAgents; i++) {
     if (mutate_elites || !elites.includes(i)) {
       mutants.push(i)
+    }
+  }
+  for (const i of winnersList) {
+    if (mutate_elites || !elites.includes(i)) {
+      mutants.push(i)
       mutated_rewards.push([rank[i], rewards[i]])
     }
   }
