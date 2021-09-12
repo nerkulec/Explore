@@ -114,7 +114,7 @@ const Nes: React.FC<Props> = () => {
           <div className='row' style={{margin: 4}}>
             <label>Fitness shaping (rank normalize)</label>
             <input type='checkbox' onChange={() => setFitnessShaping(b => !b)} checked={fitnessShaping} />
-            {tex`${`[min, max] \\rightarrow [0, 1]`}`}
+            {tex`${`f(X_{i:\\lambda}) := 1-\\frac{i-1}{\\lambda-1}`}`}
           </div>
           <div className='row' style={{margin: 4}}>
             <button type='button' onClick={() => setPoints(() => [[0, 0], [randn(), randn()]])}> Reset </button>

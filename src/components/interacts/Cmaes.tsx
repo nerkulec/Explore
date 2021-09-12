@@ -131,12 +131,14 @@ const Cmaes: React.FC<Props> = () => {
       <div className='svg'>
         <Plot funInfo={functions[fun]} points={points_}/>
       </div>
-        <h2>{tex`${[`
-          X_i \\sim \\mathcal{N}\\left(\\mu_X, C\\right)\\\\
-          X_{1-\\mu:\\lambda} = X_{1:\\lambda}, ..., X_{\\mu:\\lambda}\\\\
-          \\hat{C} = \\frac1\\mu (X_{1-\\mu:\\lambda}-\\mu_X)(X_{1-\\mu:\\lambda}-\\mu_X)^T\\\\
-          C' = (1-\\alpha)C + \\alpha \\hat{C}\\\\
-          \\mu_X' = \\overline{X_{1-\\mu:\\lambda}}
+        <h2 className='latex-block'>{tex`${[`
+        \\begin{align}
+          X_i &\\sim \\mathcal{N}\\left(\\mu_X, C\\right)\\\\
+          X_{1-\\mu:\\lambda} &= X_{1:\\lambda}, ..., X_{\\mu:\\lambda}\\\\
+          \\hat{C} &= \\frac1\\mu (X_{1-\\mu:\\lambda}-\\mu_X)(X_{1-\\mu:\\lambda}-\\mu_X)^T\\\\
+          C' &= (1-\\alpha)C + \\alpha \\hat{C}\\\\
+          \\mu_X' &= \\overline{X}_{1-\\mu:\\lambda}
+        \\end{align}
           `]}`}
         </h2>
     </div>
