@@ -1,6 +1,5 @@
 import React, { useMemo } from "react"
 import { useState } from "react"
-import Control from "../control/Control"
 import { useD3 } from "../RightSidebar"
 import MathJax from 'react-mathjax'
 import {
@@ -16,9 +15,10 @@ import {
 
 import "./Gaussian.css"
 import "../App.css"
-import { randn } from "../../evo/Evolution"
 import { useEffect } from "react"
 import { functions } from './Gaussian'
+import { argsort, randn } from "../../evo/Evolution"
+import Control from "../control/Control"
 const { Provider, Node } = MathJax
 
 const tex = (strings: TemplateStringsArray, ...values: (string | [string])[]): JSX.Element => {
@@ -46,34 +46,63 @@ type Props = {
 
 const Cmaes: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
-  const [sigma, setSigma] = useState(1)
-  const [points, setPoints] = useState<[number, number][]>([[0, 0]])
+  const [mu, setMu] = useState(10)
+  const [discount, setDiscount] = useState(-1)
+  const [points, setPoints] = useState<[number, number, number, [number, number][]]>([1, 1, 0, [[randn(), randn()]]])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setPoints(points => {
-        let [center, ...rest] = points
+      setPoints(([sigmaX, sigmaY, sigmaXY, points]: [number, number, number, [number, number][]]) => {
         const {value} = functions[fun]
-        if (rest.length > 0) {
-          const [newCenter, ]: [[number, number], number] = rest.reduce(([best, bestValue], [x, y]) => {
-            const v = value(x, y)
-            if (value(x, y) < bestValue) {
-              return [[x, y], v]
-            } else {
-              return [best, bestValue]
-            }
-          }, [rest[0], value(...rest[0])])
-          center = newCenter
+        if (points.length <= 1) {
+          for (let i=0; i<40; i++) {
+            points.push([sigmaX*randn(), sigmaY*randn()])
+          }
         }
-        const newPoints: [number, number][] = [center]
-        return newPoints
+        const [[cx, cy]] = points
+        const values = points.map(([x, y]) => value(x, y))
+        const rank = argsort(values)
+        const n = mu
+        const best = rank.slice(0, n).map(i => points[i])
+        const newSigmaX = best.reduce((sx, [x, y]) => sx+(x-cx)**2, 0)/n
+        const newSigmaY = best.reduce((sy, [x, y]) => sy+(y-cy)**2, 0)/n
+        const newSigmaXY = best.reduce((sxy, [x, y]) => sxy+(x-cx)*(y-cy), 0)/n
+        const newCX = best.reduce((s, [x, y]) => s+x, 0)/n
+        const newCY = best.reduce((s, [x, y]) => s+y, 0)/n
+        const alpha = Math.pow(10, discount)
+        const wsx = (1-alpha)*sigmaX+alpha*newSigmaX
+        const wsy = (1-alpha)*sigmaY+alpha*newSigmaY
+        const wsxy = (1-alpha)*sigmaXY+alpha*newSigmaXY
+        // const wsx = sigmaX
+        // const wsy = sigmaY
+        // const wsxy = sigmaXY
+        const newSigmaXsqrt = Math.sqrt(wsx)
+        const newSigmaYsqrt = Math.sqrt(wsy)
+        const s = Math.sqrt(newSigmaXsqrt*newSigmaYsqrt-wsxy)
+        const t = Math.sqrt(newSigmaXsqrt+newSigmaYsqrt+2*s)
+        const m11 = (wsx+s)/t
+        const m22 = (wsy+s)/t
+        const m12 = wsxy/t
+        const newPoints: [number, number][] = [[newCX, newCY]]
+        for (let i=0; i<40; i++) {
+          const dx = randn()
+          const dy = randn()
+          newPoints.push([
+            newCX+m11*dx+m12*dy,
+            newCY+m12*dx+m22*dy
+          ])
+        }
+        
+        return [wsx, wsy, wsxy, newPoints] as [number, number, number, [number, number][]]
       })
     }, 200)
     return () => clearInterval(interval)
-  }, [points, setPoints, fun])
+  }, [points, setPoints, fun, mu, discount])
+
+  const [,,, points_] = points
 
   return <div className="Gaussian">
-    <h1>Fitting the mutation distribution - demo</h1>
+    <h1>Self-adaptation of covariance matrix demo using {tex`${`(\\mu, 40)`}`}-CMA-ES (simplified)</h1>
     <div>
       <label>Function: </label>
       <select value={fun} onChange={e => setFun(e.target.value)}>
@@ -83,25 +112,33 @@ const Cmaes: React.FC<Props> = () => {
       <div className='row'>
         <div className='col'>
           <div className='row' style={{margin: 4}}>
-            <Control min={0} max={2} step={0.01} label="" value={sigma} setValue={setSigma}>
-              {tex`${'\\sigma='}`}
+            <Control min={1} max={20} step={1} label="" value={mu} setValue={setMu}>
+              {tex`${'\\mu='}`}
             </Control>
           </div>
+          <div className='row' style={{margin: 4}}>
+            <Control min={-2} max={0} step={0.1} label="" value={discount} setValue={setDiscount}>
+              {tex`${'\\log_{10}(\\alpha)='}`}
+            </Control>
+          </div>
+          <button type='button' onClick={() => setPoints([1, 1, 0, [[randn(), randn()]]])}> Reset </button>
         </div>
         <div style={{marginLeft: 10}}>
-        {tex`${[`
-          X_i \\sim \\mathcal{N}\\left(\\mu, 
-            \\begin{bmatrix}
-              \\sigma^2 & 0 \\\\
-              0 &  \\sigma^2
-            \\end{bmatrix}
-          \\right)
-          `]}`}
         </div>
       </div>
     </div>
-    <div className='svg'>
-      <Plot funInfo={functions[fun]} points={points}/>
+    <div className='row'>
+      <div className='svg'>
+        <Plot funInfo={functions[fun]} points={points_}/>
+      </div>
+        <h2>{tex`${[`
+          X_i \\sim \\mathcal{N}\\left(\\mu_X, C\\right)\\\\
+          X_{1-\\mu:\\lambda} = X_{1:\\lambda}, ..., X_{\\mu:\\lambda}\\\\
+          \\hat{C} = \\frac1\\mu (X_{1-\\mu:\\lambda}-\\mu_X)(X_{1-\\mu:\\lambda}-\\mu_X)^T\\\\
+          C' = (1-\\alpha)C + \\alpha \\hat{C}\\\\
+          \\mu_X' = \\overline{X_{1-\\mu:\\lambda}}
+          `]}`}
+        </h2>
     </div>
   </div>
 }
@@ -189,12 +226,12 @@ const Plot = ({points, funInfo}: {
         .attr('fill', (d: any) => color(d.value))
         .attr('d', geoPath())
 
-  }, [])
+  }, [fcontours])
 
   return (
     <svg ref={ref as any} width={960} height={720}>
       <g id='main' transform={`translate(${margin.left}, ${margin.top})`}>
-        <rect id='bg' width={innerWidth} height={innerHeight} fill='#000'/>
+        <rect id='bg' width={innerWidth} height={innerHeight} fill='rgb(0, 0, 127)'/>
         <g className='contour' />
         <g className='dots'>
           <circle id='center' cx={xScale(center[0])} cy={yScale(center[1])} r='3' fill='#0F0'/>

@@ -80,7 +80,7 @@ type Props = {
 const Gaussian: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
   const [matrix, setMatrix] = useState(() => [1, 1, 0])
-  const [points, setPoints] = useState<[number, number][]>([[0, 0]])
+  const [points, setPoints] = useState<[number, number][]>(() => [[randn(), randn()]])
   const sqrt = useMemo(() => {
     const sigma1 = matrix[0]
     const sigma2 = matrix[1]
@@ -129,7 +129,7 @@ const Gaussian: React.FC<Props> = () => {
   const twoPi = Math.floor(Math.PI*200)/100
 
   return <div className="Gaussian">
-    <h1>Fitting the mutation distribution - demo</h1>
+    <h1>Fitting the mutation distribution - demo using {tex`${`(1, 40)`}-ES`}</h1>
     <div>
       <label>Function: </label>
       <select value={fun} onChange={e => setFun(e.target.value)}>
@@ -154,7 +154,7 @@ const Gaussian: React.FC<Props> = () => {
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
-            <button type='button' onClick={() => setPoints([[0, 0]])}> Reset </button>
+            <button type='button' onClick={() => setPoints([[randn(), randn()]])}> Reset </button>
           </div>
         </div>
         <div style={{marginLeft: 10}}>
@@ -204,7 +204,7 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
   const yScale = scaleLinear()
     .domain([yOpt-yDomain/2, yOpt+yDomain/2])
     .range([innerHeight, 0])
-  let thresholds
+  let thresholds: number[]
   let scaleSeq
   if (scale === 'log') {
     thresholds = range(thresholdRange[0], thresholdRange[1]).map(x => x/div).map(i => Math.pow(2, i))
@@ -233,23 +233,25 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
     grid.m = m
     return grid
   }, [value, xScale, yScale])
-
-  const transform = ({type, value, coordinates}:
-    {type: string, value: (x: number, y: number) => number, coordinates: [number, number][][][]}) => ({
-      type, value, coordinates: coordinates.map(rings => 
-      rings.map(points => 
-        points.map(([x, y]) => ([
-          grid.x + grid.k * x,
-          grid.y + grid.k * y
-        ]))
-      )
-    )
-  })
   
-  const fcontours = contours()
-    .size([grid.n, grid.m])
-    .thresholds(thresholds)(grid)
-    .map(transform as any)
+  const fcontours = useMemo(() => {
+    const transform = ({type, value, coordinates}:
+      {type: string, value: (x: number, y: number) => number, coordinates: [number, number][][][]}) => ({
+        type, value, coordinates: coordinates.map(rings => 
+        rings.map(points => 
+          points.map(([x, y]) => ([
+            grid.x + grid.k * x,
+            grid.y + grid.k * y
+          ]))
+        )
+      )
+    })
+
+    return contours()
+      .size([grid.n, grid.m])
+      .thresholds(thresholds)(grid)
+      .map(transform as any)
+  }, [thresholds, grid])
 
   const circles = randoms.map(([x, y]) => ({
     x: xScale(x), y: yScale(y), r: 1.5, fill: '#000'
@@ -272,7 +274,7 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
   return (
     <svg ref={ref as any} width={960} height={720}>
       <g id='main' transform={`translate(${margin.left}, ${margin.top})`}>
-        <rect id='bg' width={innerWidth} height={innerHeight} fill='#000'/>
+        <rect id='bg' width={innerWidth} height={innerHeight} fill='rgb(0, 0, 127)'/>
         <g className='contour' />
         <g className='dots'>
           <circle id='center' cx={xScale(center[0])} cy={yScale(center[1])} r='3' fill='#0F0'/>

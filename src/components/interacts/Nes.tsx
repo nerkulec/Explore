@@ -48,14 +48,14 @@ const Nes: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
   const [fitnessShaping, setFitnessShaping] = useState(false)
   const [sigma, setSigma] = useState(1)
-  const [alpha, setAlpha] = useState(-15)
-  const [points, setPoints] = useState<[number, number][]>([[0, 0], [0, 0]])
+  const [alpha, setAlpha] = useState(-5)
+  const [points, setPoints] = useState<[number, number][]>([[0, 0], [randn(), randn()]])
 
   useEffect(() => {
     const interval = setInterval(() => {
       setPoints(points => {
         let [gradient, center] = points
-        const lr = Math.pow(2, alpha)
+        const lr = Math.pow(10, alpha)
         center[0] -= lr*gradient[0]
         center[1] -= lr*gradient[1]
         const newPoints: [number, number][] = [gradient, center]
@@ -65,28 +65,22 @@ const Nes: React.FC<Props> = () => {
         }
         const {value} = functions[fun]
         gradient = [0, 0]
+        let values = []
+        for (let i=0; i<40; i++) {
+          const newPoint: [number, number] = [center[0]+randoms[i][0], center[1]+randoms[i][1]]
+          newPoints.push(newPoint)
+          values.push(value(...newPoint))
+        }
         if (fitnessShaping) {
-          const values = []
-          for (let i=0; i<40; i++) {
-            const newPoint: [number, number] = [center[0]+randoms[i][0], center[1]+randoms[i][1]]
-            newPoints.push(newPoint)
-            values.push(value(...newPoint))
-          }
           const coef = 1/(values.length-1)
-          const rank = argsort(values).map(x => x*coef)
-          for (let i=0; i<40; i++) {
-            gradient[0] += rank[i]*randoms[i][0]
-            gradient[1] += rank[i]*randoms[i][1]
+          const rank = argsort(values)
+          for (let i=0; i<rank.length; i++) {
+            values[rank[i]] = i*coef
           }
-
-        } else {
-          for (let i=0; i<40; i++) {
-            const newPoint: [number, number] = [center[0]+randoms[i][0], center[1]+randoms[i][1]]
-            newPoints.push(newPoint)
-            const v = value(...newPoint)
-            gradient[0] += v*randoms[i][0]
-            gradient[1] += v*randoms[i][1]
-          }
+        }
+        for (let i=0; i<40; i++) {
+          gradient[0] += values[i]*randoms[i][0]
+          gradient[1] += values[i]*randoms[i][1]
         }
         newPoints[0] = [gradient[0]/40, gradient[1]/40]
         return newPoints
@@ -113,16 +107,17 @@ const Nes: React.FC<Props> = () => {
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
-            <Control min={-20} max={4} step={0.5} label="" value={alpha} setValue={setAlpha}>
-              {tex`${'\\log(\\alpha)='}`}
+            <Control min={-8} max={2} step={0.1} label="" value={alpha} setValue={setAlpha}>
+              {tex`${'\\log_{10}(\\alpha)='}`}
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
             <label>Fitness shaping</label>
             <input type='checkbox' onChange={() => setFitnessShaping(b => !b)} checked={fitnessShaping} />
+            {tex`${`[min, max] \\rightarrow [0, 1]`}`}
           </div>
           <div className='row' style={{margin: 4}}>
-            <button type='button' onClick={() => setPoints([[0, 0], [0, 0]])}> Reset </button>
+            <button type='button' onClick={() => setPoints(() => [[0, 0], [randn(), randn()]])}> Reset </button>
           </div>
         </div>
         <div style={{marginLeft: 10}}>
@@ -135,7 +130,7 @@ const Nes: React.FC<Props> = () => {
           \\right)
           `]}`}
           {tex`${[`
-          \\nabla_X = \\sum_{i=1}^n f(X_i)(X_i-\\mu)
+          \\mu' = \\mu - \\alpha \\frac1n \\sum_{i=1}^n f(X_i)(X_i-\\mu)
             `]}`}
         </div>
       </div>
@@ -236,7 +231,7 @@ const Plot = ({grad, points, funInfo}: {
   return (
     <svg ref={ref as any} width={960} height={720}>
       <g id='main' transform={`translate(${margin.left}, ${margin.top})`}>
-        <rect id='bg' width={innerWidth} height={innerHeight} fill='#000'/>
+        <rect id='bg' width={innerWidth} height={innerHeight} fill='rgb(0, 0, 127)'/>
         <g className='contour' />
         <g className='dots'>
           <circle id='center' cx={xScale(center[0])} cy={yScale(center[1])} r='3' fill='#0F0'/>
