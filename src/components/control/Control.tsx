@@ -1,3 +1,5 @@
+import React from 'react'
+
 import "./Control.css"
 
 const Control = ({
@@ -9,7 +11,8 @@ const Control = ({
   step,
   setValue,
   showFn,
-  unit
+  unit,
+  children
 }: {
   label: string,
   tooltip?: string,
@@ -19,7 +22,8 @@ const Control = ({
   step?: number,
   setValue: (v: number) => void,
   showFn?: (v: number) => string,
-  unit?: string
+  unit?: string,
+  children?: JSX.Element
 }) => {
   step = step || 1
   const handleInputChange = (val: string) => {
@@ -44,6 +48,7 @@ const Control = ({
             className="slider-pic"
             onChange={(e) => setValue(parseFloat(e.target.value))}
           />
+          {children}
           {showFn ? <output>{showFn(value)}{unit}</output> : <>
             <input
               className="input"

@@ -16,8 +16,9 @@ import {
 
 import "./Gaussian.css"
 import "../App.css"
-import { randn } from "../../evo/Evolution"
+import { argsort, randn } from "../../evo/Evolution"
 import { useEffect } from "react"
+import { functions } from './Gaussian'
 const { Provider, Node } = MathJax
 
 const tex = (strings: TemplateStringsArray, ...values: (string | [string])[]): JSX.Element => {
@@ -35,40 +36,6 @@ export type funType = {
   xDomain: number
   formula: JSX.Element
 }
-const TwoPI = 2*Math.PI
-export const functions: {
-  [key: string]: funType
-} = {
-  Rosenbrock: {
-    value: (x, y) => (1-x)**2+100*(y-x**2)**2,
-    optimum: [1, 1],
-    scale: 'log',
-    thresholdRange: [-1, 20],
-    div: 1,
-    xDomain: 8,
-    formula: tex`${`f(x, y) = (1-x)^2+100(y-x^2)^2`}`
-  },
-  Rastrigin: {
-    value: (x, y) => 20+x**2+y**2-10*Math.cos(TwoPI*x)-10*Math.cos(TwoPI*y),
-    optimum: [0, 0],
-    scale: 'log',
-    thresholdRange: [-4, 20],
-    div: 3,
-    xDomain: 10,
-    formula: tex`${`f(x, y) = x^2+y^2-10 \\cos(2\\pi x) -10 \\cos(2\\pi y)`}`
-  },
-  Beale: {
-    // value: (x, y) => -20*Math.exp(-0.2*Math.sqrt(0.5*(x^2+y^2)))-Math.exp(0.5*(Math.cos(TwoPI*x)+Math.cos(TwoPI*y))) + Math.E + 20,
-    value: (x, y) => (1.5-x+x*y)**2 + (2.25-x+x*y**2)**2+(2.625-x+x*y**3)**2,
-    optimum: [3, 0.5],
-    scale: 'log',
-    thresholdRange: [-10, 20],
-    div: 1,
-    xDomain: 10,
-    formula: tex`${`f(x, y) = (1.5-x+xy)^2+(2.25-x+xy^2)^2+(2.625-x+xy^3)^2`}`
-  }
-
-}
 
 
 
@@ -77,59 +44,61 @@ type Props = {
   
 }
 
-const Gaussian: React.FC<Props> = () => {
+const Nes: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
-  const [matrix, setMatrix] = useState(() => [1, 1, 0])
-  const [points, setPoints] = useState<[number, number][]>([[0, 0]])
-  const sqrt = useMemo(() => {
-    const sigma1 = matrix[0]
-    const sigma2 = matrix[1]
-    const c = Math.cos(matrix[2])
-    const s = Math.sin(matrix[2])
-    return [c*sigma1, s*sigma1, -s*sigma2, c*sigma2]
-  }, [matrix])
-
-  const setNth = (index: number) => (value: number) => setMatrix(matrix => {
-    const newMatrix = [...matrix]
-    newMatrix[index] = value
-    return newMatrix
-  })
+  const [fitnessShaping, setFitnessShaping] = useState(false)
+  const [sigma, setSigma] = useState(1)
+  const [alpha, setAlpha] = useState(-15)
+  const [points, setPoints] = useState<[number, number][]>([[0, 0], [0, 0]])
 
   useEffect(() => {
     const interval = setInterval(() => {
       setPoints(points => {
-        let [center, ...rest] = points
-        const {value} = functions[fun]
-        if (rest.length > 0) {
-          const [newCenter, ]: [[number, number], number] = rest.reduce(([best, bestValue], [x, y]) => {
-            const v = value(x, y)
-            if (value(x, y) < bestValue) {
-              return [[x, y], v]
-            } else {
-              return [best, bestValue]
-            }
-          }, [rest[0], value(...rest[0])])
-          center = newCenter
-        }
-        const newPoints: [number, number][] = [center]
+        let [gradient, center] = points
+        const lr = Math.pow(2, alpha)
+        center[0] -= lr*gradient[0]
+        center[1] -= lr*gradient[1]
+        const newPoints: [number, number][] = [gradient, center]
+        const randoms: [number, number][] = []
         for (let i=0; i<40; i++) {
-          const dx = randn()
-          const dy = randn()
-          newPoints.push([
-            center[0]+sqrt[0]*dx+sqrt[2]*dy,
-            center[1]+sqrt[1]*dx+sqrt[3]*dy
-          ])
+          randoms.push([randn()*sigma, randn()*sigma])
         }
+        const {value} = functions[fun]
+        gradient = [0, 0]
+        if (fitnessShaping) {
+          const values = []
+          for (let i=0; i<40; i++) {
+            const newPoint: [number, number] = [center[0]+randoms[i][0], center[1]+randoms[i][1]]
+            newPoints.push(newPoint)
+            values.push(value(...newPoint))
+          }
+          const coef = 1/(values.length-1)
+          const rank = argsort(values).map(x => x*coef)
+          for (let i=0; i<40; i++) {
+            gradient[0] += rank[i]*randoms[i][0]
+            gradient[1] += rank[i]*randoms[i][1]
+          }
+
+        } else {
+          for (let i=0; i<40; i++) {
+            const newPoint: [number, number] = [center[0]+randoms[i][0], center[1]+randoms[i][1]]
+            newPoints.push(newPoint)
+            const v = value(...newPoint)
+            gradient[0] += v*randoms[i][0]
+            gradient[1] += v*randoms[i][1]
+          }
+        }
+        newPoints[0] = [gradient[0]/40, gradient[1]/40]
         return newPoints
       })
     }, 200)
     return () => clearInterval(interval)
-  }, [points, setPoints, fun, sqrt])
+  }, [points, setPoints, fun, fitnessShaping, alpha, sigma])
 
-  const twoPi = Math.floor(Math.PI*200)/100
+  const [grad, ...points_] = points
 
   return <div className="Gaussian">
-    <h1>Fitting the mutation distribution - demo</h1>
+    <h1>Fitness shaping for NES - demo</h1>
     <div>
       <label>Function: </label>
       <select value={fun} onChange={e => setFun(e.target.value)}>
@@ -139,52 +108,46 @@ const Gaussian: React.FC<Props> = () => {
       <div className='row'>
         <div className='col'>
           <div className='row' style={{margin: 4}}>
-            <Control min={0} max={2} step={0.01} label="" value={matrix[0]} setValue={setNth(0)}>
-              {tex`${'\\sigma_1='}`}
+            <Control min={0} max={2} step={0.01} label="" value={sigma} setValue={setSigma}>
+              {tex`${'\\sigma='}`}
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
-            <Control min={0} max={2} step={0.01} label="" value={matrix[1]} setValue={setNth(1)}>
-              {tex`${'\\sigma_2='}`}
+            <Control min={-20} max={4} step={0.5} label="" value={alpha} setValue={setAlpha}>
+              {tex`${'\\log(\\alpha)='}`}
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
-            <Control min={0} max={twoPi} step={0.01} label="" value={matrix[2]} setValue={setNth(2)}>
-              {tex`${'\\theta='}`}
-            </Control>
+            <label>Fitness shaping</label>
+            <input type='checkbox' onChange={() => setFitnessShaping(b => !b)} checked={fitnessShaping} />
           </div>
           <div className='row' style={{margin: 4}}>
-            <button type='button' onClick={() => setPoints([[0, 0]])}> Reset </button>
+            <button type='button' onClick={() => setPoints([[0, 0], [0, 0]])}> Reset </button>
           </div>
         </div>
         <div style={{marginLeft: 10}}>
         {tex`${[`
           X_i \\sim \\mathcal{N}\\left(\\mu, 
             \\begin{bmatrix}
-              \\cos(\\theta) & -\\sin(\\theta) \\\\
-              \\sin(\\theta) &  \\cos(\\theta)
+              \\sigma^2 & 0 \\\\
+              0 &  \\sigma^2
             \\end{bmatrix}
-            \\begin{bmatrix}
-              \\sigma_1^2 & 0 \\\\
-              0 &  \\sigma_2^2
-            \\end{bmatrix}
-            \\begin{bmatrix}
-              \\cos(\\theta) & -\\sin(\\theta) \\\\
-              \\sin(\\theta) &  \\cos(\\theta)
-            \\end{bmatrix}^{-1}
           \\right)
           `]}`}
+          {tex`${[`
+          \\nabla_X = \\sum_{i=1}^n f(X_i)(X_i-\\mu)
+            `]}`}
         </div>
       </div>
     </div>
     <div className='svg'>
-      <GaussianPlot funInfo={functions[fun]} sqrt={sqrt} points={points}/>
+      <Plot funInfo={functions[fun]} grad={grad} points={points_}/>
     </div>
   </div>
 }
 
-const GaussianPlot = ({sqrt, points, funInfo}: {
-  sqrt: number[], points: [number, number][], funInfo: funType}) => {
+const Plot = ({grad, points, funInfo}: {
+  grad: [number, number], points: [number, number][], funInfo: funType}) => {
   const width = 960
   const height = 720
     
@@ -268,6 +231,7 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
 
   }, [fcontours])
 
+  const gradScaling = 0.001
 
   return (
     <svg ref={ref as any} width={960} height={720}>
@@ -276,6 +240,13 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
         <g className='contour' />
         <g className='dots'>
           <circle id='center' cx={xScale(center[0])} cy={yScale(center[1])} r='3' fill='#0F0'/>
+          <line
+            x1={xScale(center[0])}
+            y1={yScale(center[1])}
+            x2={xScale(center[0]-grad[0]*gradScaling)}
+            y2={yScale(center[1]-grad[1]*gradScaling)}
+            stroke='#0F0'
+          />
           <circle id='optimum' cx={xScale(xOpt)} cy={yScale(yOpt)} r='3' fill='#F00'/>
         </g>
         <g id='elipses'>
@@ -288,5 +259,5 @@ const GaussianPlot = ({sqrt, points, funInfo}: {
   )
 }
 
-export default Gaussian
+export default Nes
 

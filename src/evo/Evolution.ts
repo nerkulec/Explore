@@ -6,7 +6,7 @@ const deepcopy1d = <T>(xs: T[]): T[] => xs.slice()
 const deepcopy2d = <T>(xs: T[][]): T[][] => xs.map(deepcopy1d)
 const deepcopy3d = <T>(xs: T[][][]): T[][][] => xs.map(deepcopy2d)
 
-const argsort = (elems: number[]) => elems
+export const argsort = (elems: number[]) => elems
   .map((e, i) => [e, i])
   .sort(([e1], [e2]) => e1-e2)
   .map(([,i]) => i)

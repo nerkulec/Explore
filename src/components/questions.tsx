@@ -8,7 +8,7 @@ const q = (question: string, answer: JSX.Element | string, nextQuestions?: quest
   question, answer, nextQuestions: nextQuestions || []
 })
 
-const tex = (strings: TemplateStringsArray, ...values: (string | [string])[]): JSX.Element => {
+export const tex = (strings: TemplateStringsArray, ...values: (string | [string])[]): JSX.Element => {
   return <Provider>{values.reduce((final, value, index) => [
     ...final, typeof value === 'string' ? <Node formula={value} inline/> : <Node formula={value[0]}/>, <span>{strings[index+1]}</span>], [<span>{strings[0]}</span>] as JSX.Element[])}
   </Provider>
