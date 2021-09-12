@@ -20,7 +20,7 @@ ReactDOM.render(
         <Route path='/nes'>
           <Nes />
         </Route>
-        <Route path='/cmaes'>
+        <Route path='/cma-es'>
           <Cmaes />
         </Route>
         <Route path='/'>

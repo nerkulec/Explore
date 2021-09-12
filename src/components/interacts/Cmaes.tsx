@@ -105,7 +105,7 @@ const Cmaes: React.FC<Props> = () => {
     <h1>Self-adaptation of covariance matrix demo using {tex`${`(\\mu, 40)`}`}-CMA-ES (simplified)</h1>
     <div>
       <label>Function: </label>
-      <select value={fun} onChange={e => setFun(e.target.value)}>
+      <select value={fun} onChange={e => setFun(e.target.value)} style={{margin: 4}}>
         {Object.keys(functions).map(name => <option>{name}</option>)}        
       </select>
       {functions[fun].formula}

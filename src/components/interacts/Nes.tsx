@@ -92,10 +92,10 @@ const Nes: React.FC<Props> = () => {
   const [grad, ...points_] = points
 
   return <div className="Gaussian">
-    <h1>Fitness shaping for NES - demo</h1>
+    <h1>Fitness shaping - demo using NES</h1>
     <div>
       <label>Function: </label>
-      <select value={fun} onChange={e => setFun(e.target.value)}>
+      <select value={fun} onChange={e => setFun(e.target.value)} style={{margin: 4}}>
         {Object.keys(functions).map(name => <option>{name}</option>)}        
       </select>
       {functions[fun].formula}
@@ -112,7 +112,7 @@ const Nes: React.FC<Props> = () => {
             </Control>
           </div>
           <div className='row' style={{margin: 4}}>
-            <label>Fitness shaping</label>
+            <label>Fitness shaping (rank normalize)</label>
             <input type='checkbox' onChange={() => setFitnessShaping(b => !b)} checked={fitnessShaping} />
             {tex`${`[min, max] \\rightarrow [0, 1]`}`}
           </div>

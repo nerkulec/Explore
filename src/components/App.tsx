@@ -2,8 +2,7 @@ import React, {useState} from "react"
 import "./App.css"
 import Navbar from "./Navbar"
 import { P5Wrapper } from "./P5Wrapper"
-import question from "./questions"
-import Question from "./questions/Question"
+import { tex } from "./questions"
 import RightSidebar from "./RightSidebar"
 import sketch from "./sketch"
 import { settingsType } from "./types"
@@ -103,7 +102,10 @@ function App() {
     />
     <div className="row">
       <div className="column left">
-        
+        <h2>Additional demos:</h2>
+        <a href='/correlation-matrix' className='link'>See the effect of changing the mutation distribution - demo using {tex`${`(1, \\lambda)`}-ES`}</a>
+        <a href='/nes' className='link'>See how fitness shaping affects convergence and robustness - demo using NES</a>
+        <a href='/cma-es' className='link'>See self-adaptation at work - demo using CMA-ES</a>
       </div>
       <div className="column middle">
         <P5Wrapper
@@ -129,9 +131,6 @@ function App() {
         />
       </div>
     </div>
-    <span className='description' id='description'>
-      <Question question={question}/>
-    </span>
   </div>
 }
 

@@ -132,7 +132,7 @@ const Gaussian: React.FC<Props> = () => {
     <h1>Fitting the mutation distribution - demo using {tex`${`(1, 40)`}-ES`}</h1>
     <div>
       <label>Function: </label>
-      <select value={fun} onChange={e => setFun(e.target.value)}>
+      <select value={fun} onChange={e => setFun(e.target.value)} style={{margin: 4}}>
         {Object.keys(functions).map(name => <option>{name}</option>)}        
       </select>
       {functions[fun].formula}
