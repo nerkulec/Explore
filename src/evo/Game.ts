@@ -61,7 +61,7 @@ export class CheetahGame extends PhysicsGame {
     this.cheetah.springs.forEach(s => this.world.addSpring(s))
     this.reset()
     // ;(this.world.solver as any).tolerance = 0.00001
-    // ;(this.world.solver as any).iterations = 1000
+    ;(this.world.solver as any).iterations = 5
   }
 
   update(torque: CheetahActionSpace) {

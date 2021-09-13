@@ -68,7 +68,7 @@ export default function Navbar({
               label='Number of parents (ρ)'
               tooltip='Number of parents involved in the procreation of an offspring - mixing coefficient'
             />
-            <Control min={2} max={Math.min(settings.numSelects, 6)} value={settings.tournamentSize} setValue={setSetting('tournamentSize')}
+            <Control min={2} max={6} value={settings.tournamentSize} setValue={setSetting('tournamentSize')}
               label='Tournament size'
               tooltip='Number of agents taking part in a single tournament round'
             />

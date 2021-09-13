@@ -20,9 +20,9 @@ function App() {
   const [settings, setSettings] = useState<settingsType>({
     env: 'Cheetah',
     deterministic: true,
-    numAgents: 36,
-    numAgentsToBe: 36,
-    epLen: 200,
+    numAgents: 25,
+    numAgentsToBe: 25,
+    epLen: 600,
     animTimeCoef: 100,
     mutationRate: 13,
     mutationProb: 100,
@@ -30,10 +30,10 @@ function App() {
     adaptMutationRate: false,
     commaVariant: false,
     loops: 1,
-    numElites: 4,
-    numSelects: 18,
+    numElites: 1,
+    numSelects: 6,
     numParents: 2,
-    tournamentSize: 2,
+    tournamentSize: 4,
     framesElites: 90,
     framesPerPair: 40,
     framesLosers: 90,
@@ -102,16 +102,14 @@ function App() {
     />
     <div className="row">
       <div className="column left">
-        <h2>Materials on Evolution Strategies in Reinforcement Learning</h2>
+        <h2>Materials on Evolution Strategies in Reinforcement Learning:</h2>
         <a href='https://openai.com/blog/evolution-strategies/' className='link'>
           Evolution Strategies as a
           Scalable Alternative to
           Reinforcement Learning [OpenAI]
         </a>
         <a href='https://eng.uber.com/deep-neuroevolution/' className='link'>
-          Evolution Strategies as a
-          Scalable Alternative to
-          Reinforcement Learning [OpenAI]
+          Welcoming the Era of Deep Neuroevolution [UberAI]
         </a>
         
         <h2>Additional demos:</h2>
