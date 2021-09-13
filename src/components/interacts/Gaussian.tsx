@@ -55,7 +55,7 @@ export const functions: {
     thresholdRange: [-4, 20],
     div: 3,
     xDomain: 10,
-    formula: tex`${`f(x, y) = x^2+y^2-10 \\cos(2\\pi x) -10 \\cos(2\\pi y)`}`
+    formula: tex`${`f(x, y) = 20+x^2+y^2-10 \\cos(2\\pi x) -10 \\cos(2\\pi y)`}`
   },
   Beale: {
     // value: (x, y) => -20*Math.exp(-0.2*Math.sqrt(0.5*(x^2+y^2)))-Math.exp(0.5*(Math.cos(TwoPI*x)+Math.cos(TwoPI*y))) + Math.E + 20,

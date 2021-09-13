@@ -21,7 +21,7 @@ export default function Navbar({
         <div className='row'>
           <div className='column'>
             <div className='control-el column'>
-              <label>Choose environment</label>
+              <label>Choose RL environment</label>
               <select value={settings.env} onChange={e => setEnv(e.target.value)}>
                 <option>Cheetah</option>
                 <option>Acrobot</option>

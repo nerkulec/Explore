@@ -102,6 +102,18 @@ function App() {
     />
     <div className="row">
       <div className="column left">
+        <h2>Materials on Evolution Strategies in Reinforcement Learning</h2>
+        <a href='https://openai.com/blog/evolution-strategies/' className='link'>
+          Evolution Strategies as a
+          Scalable Alternative to
+          Reinforcement Learning [OpenAI]
+        </a>
+        <a href='https://eng.uber.com/deep-neuroevolution/' className='link'>
+          Evolution Strategies as a
+          Scalable Alternative to
+          Reinforcement Learning [OpenAI]
+        </a>
+        
         <h2>Additional demos:</h2>
         <a href='/correlation-matrix' className='link'>See the effect of changing the mutation distribution - demo using {tex`${`(1, \\lambda)`}-ES`}</a>
         <a href='/nes' className='link'>See how fitness shaping affects convergence and robustness - demo using NES</a>

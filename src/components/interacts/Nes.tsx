@@ -46,9 +46,9 @@ type Props = {
 
 const Nes: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
-  const [fitnessShaping, setFitnessShaping] = useState(false)
+  const [fitnessShaping, setFitnessShaping] = useState(true)
   const [sigma, setSigma] = useState(1)
-  const [alpha, setAlpha] = useState(-5)
+  const [alpha, setAlpha] = useState(-1)
   const [points, setPoints] = useState<[number, number][]>([[0, 0], [randn(), randn()]])
 
   useEffect(() => {

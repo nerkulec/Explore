@@ -46,8 +46,8 @@ type Props = {
 
 const Cmaes: React.FC<Props> = () => {
   const [fun, setFun] = useState('Rosenbrock')
-  const [mu, setMu] = useState(10)
-  const [discount, setDiscount] = useState(-1)
+  const [mu, setMu] = useState(1)
+  const [discount, setDiscount] = useState(-0.5)
   const [points, setPoints] = useState<[number, number, number, [number, number][]]>([1, 1, 0, [[randn(), randn()]]])
 
   useEffect(() => {
@@ -166,7 +166,7 @@ const Plot = ({points, funInfo}: {
   const yScale = scaleLinear()
     .domain([yOpt-yDomain/2, yOpt+yDomain/2])
     .range([innerHeight, 0])
-  let thresholds
+  let thresholds: number[]
   let scaleSeq
   if (scale === 'log') {
     thresholds = range(thresholdRange[0], thresholdRange[1]).map(x => x/div).map(i => Math.pow(2, i))
@@ -195,23 +195,26 @@ const Plot = ({points, funInfo}: {
     grid.m = m
     return grid
   }, [value, xScale, yScale])
-
-  const transform = ({type, value, coordinates}:
-    {type: string, value: (x: number, y: number) => number, coordinates: [number, number][][][]}) => ({
-      type, value, coordinates: coordinates.map(rings => 
-      rings.map(points => 
-        points.map(([x, y]) => ([
-          grid.x + grid.k * x,
-          grid.y + grid.k * y
-        ]))
-      )
-    )
-  })
   
-  const fcontours = contours()
-    .size([grid.n, grid.m])
-    .thresholds(thresholds)(grid)
-    .map(transform as any)
+  const fcontours = useMemo(() => {
+    const transform = ({type, value, coordinates}:
+      {type: string, value: (x: number, y: number) => number, coordinates: [number, number][][][]}) => ({
+        type, value, coordinates: coordinates.map(rings => 
+        rings.map(points => 
+          points.map(([x, y]) => ([
+            grid.x + grid.k * x,
+            grid.y + grid.k * y
+          ]))
+        )
+      )
+    })
+
+    return contours()
+      .size([grid.n, grid.m])
+      .thresholds(thresholds)(grid)
+      .map(transform as any)
+  }, [thresholds, grid])
+
 
   const circles = randoms.map(([x, y]) => ({
     x: xScale(x), y: yScale(y), r: 1.5, fill: '#000'
