@@ -1,4 +1,4 @@
-import React, {useRef} from 'react'
+import React, {} from 'react'
 import {
   scaleLinear,
   axisRight,
@@ -8,10 +8,10 @@ import {
 import './Sidebar.css'
 import {useD3} from './RightSidebar'
 
-const ewma = (xs: number[], coef: number) => xs
-  .reduce((ewmas, value) => [...ewmas, (coef*ewmas[ewmas.length-1]+(1-coef)*value)], [0])
-  .slice(1).map((e, i) => e/(1-Math.pow(coef, i===0 ? 1 : i+1)))
-export const reverse = <T extends unknown>(xs: T[]) => xs.slice().reverse()
+// const ewma = (xs: number[], coef: number) => xs
+//   .reduce((ewmas, value) => [...ewmas, (coef*ewmas[ewmas.length-1]+(1-coef)*value)], [0])
+//   .slice(1).map((e, i) => e/(1-Math.pow(coef, i===0 ? 1 : i+1)))
+// export const reverse = <T extends unknown>(xs: T[]) => xs.slice().reverse()
 
 const SigmasChart = ({sigmas, start, end, title}: {sigmas: number[][][], start: number, end: number, title: string}) => {
   const ref = useD3((svg: any) => {
