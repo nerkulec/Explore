@@ -276,7 +276,7 @@ export type GraphoidGenotype = {
 }
 
 const tau = 2*Math.PI
-
+export const min_length = 0.8
 export const get_random_graphoid = (): GraphoidGenotype => {
   const torso_length = 3*Math.exp(randn()/3)
   let l_structure: number[] = []
@@ -318,7 +318,9 @@ export const get_random_graphoid = (): GraphoidGenotype => {
 
   return {
     l_structure, r_structure, torso_length,
-    l_lengths, r_lengths, l_angles, r_angles
+    l_lengths: l_lengths.map(l => Math.max(min_length, Math.min(3, l))),
+    r_lengths: r_lengths.map(l => Math.max(min_length, Math.min(3, l))),
+    l_angles, r_angles
   }
   // return {
   //   l_structure: [1, 0],

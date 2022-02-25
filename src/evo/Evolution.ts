@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import { settingsType } from '../components/types'
-import { max_side_limbs } from './Agent'
+import { max_side_limbs, min_length } from './Agent'
 import { Game } from './Game'
 import { adaptation_dimension, MyModel } from './Model'
 
@@ -118,14 +118,14 @@ export const mutate = (model: MyModel, {mutationProb,
 
     let new_l_structure = [...l_structure]
     for (let i=0; i<new_l_structure.length; i++) {
-      if (Math.random() < 0.02*lsi_s/new_l_structure.length) {
+      if (Math.random() < 0.05*lsi_s/new_l_structure.length) {
         new_l_structure[i] += 1
       } else if (Math.random() < 0.05*lsd_s/new_l_structure.length) {
         new_l_structure[i] = Math.max(0, new_l_structure[i]-1)
       }
     }
     let iter = 0
-    while (Math.random() < 0.02*lst_s/new_l_structure.length && iter < 5) {
+    while (Math.random() < 0.05*lst_s/new_l_structure.length && iter < 5) {
       const i = Math.floor(Math.random()*new_l_structure.length)
       const j = Math.floor(Math.random()*new_l_structure.length)
       if (i !== j) {
@@ -138,14 +138,14 @@ export const mutate = (model: MyModel, {mutationProb,
 
     let new_r_structure = [...r_structure]
     for (let i=0; i<new_r_structure.length; i++) {
-      if (Math.random() < 0.02*rsi_s/new_r_structure.length) {
+      if (Math.random() < 0.05*rsi_s/new_r_structure.length) {
         new_r_structure[i] += 1
       } else if (Math.random() < 0.05*rsd_s/new_r_structure.length) {
         new_r_structure[i] = Math.max(0, new_r_structure[i]-1)
       }
     }
     iter = 0
-    while (Math.random() < 0.02*rst_s/new_r_structure.length && iter < 5) {
+    while (Math.random() < 0.05*rst_s/new_r_structure.length && iter < 5) {
       const i = Math.floor(Math.random()*new_r_structure.length)
       const j = Math.floor(Math.random()*new_r_structure.length)
       if (i !== j) {
@@ -163,8 +163,8 @@ export const mutate = (model: MyModel, {mutationProb,
 
     l_lengths = l_lengths.map((l, i) => l * Math.exp(ll_s[i]*randn()/10))
     r_lengths = r_lengths.map((l, i) => l * Math.exp(rl_s[i]*randn()/10))
-    l_angles = l_angles.map((a, i) => a + la_s[i]*randn())
-    r_angles = r_angles.map((a, i) => a + ra_s[i]*randn())
+    l_angles = l_angles.map((a, i) => a + la_s[i]*randn()/10)
+    r_angles = r_angles.map((a, i) => a + ra_s[i]*randn()/10)
     const l_d = l_n-l_lengths.length
     const r_d = r_n-r_lengths.length
     if (l_d > 0) {
@@ -197,8 +197,8 @@ export const mutate = (model: MyModel, {mutationProb,
       l_structure: new_l_structure,
       r_structure: new_r_structure,
       torso_length: Math.min(3, torso_length*Math.exp(tl_s*randn()/10)),
-      l_lengths: l_lengths.map(l => Math.min(3, l)),
-      r_lengths: r_lengths.map(l => Math.min(3, l)),
+      l_lengths: l_lengths.map(l => Math.max(min_length, Math.min(3, l))),
+      r_lengths: r_lengths.map(l => Math.max(min_length, Math.min(3, l))),
       l_angles,
       r_angles,
     }
@@ -223,8 +223,12 @@ export const crossover = (parents: MyModel[]): MyModel => {
   }
   child.setMemoizedWeights(child_weights)
   if (parents[0].graphoid_genotype) {
-    const parent = randomChoice(parents)
-    child.graphoid_genotype = parent.graphoid_genotype
+    const l_parent = randomChoice(parents)
+    const r_parent = randomChoice(parents)
+    child.graphoid_genotype = {...l_parent.graphoid_genotype!}
+    child.graphoid_genotype.r_structure = r_parent.graphoid_genotype!.r_structure
+    child.graphoid_genotype.r_lengths = r_parent.graphoid_genotype!.r_lengths
+    child.graphoid_genotype.r_angles = r_parent.graphoid_genotype!.r_angles
     // child.graphoid_genotype = {
     //   l_structure: randomChoice(parents.map(p => p.graphoid_genotype!.l_structure)),
     //   r_structure: randomChoice(parents.map(p => p.graphoid_genotype!.r_structure)),
