@@ -1,7 +1,10 @@
 import * as tf from '@tensorflow/tfjs'
 import { Graphics } from 'p5'
 import { P5Instance } from '../components/P5Wrapper'
-import { AcrobotGame, CheetahGame, MountainCarGame } from './Game'
+import { GraphoidGenotype } from './Agent'
+import { AcrobotGame, CheetahGame, GraphoidGame, MountainCarGame } from './Game'
+
+export const adaptation_dimension = 41 // 9+4*8
 
 export class MyModel extends tf.Sequential {
   init_args: [P5Instance, number, number[]]
@@ -12,6 +15,9 @@ export class MyModel extends tf.Sequential {
   generations_since_mutated = 0
   generations_since_created = 0
   mutation_coef = 0
+  graphoid_genotype?: GraphoidGenotype
+  log_sigmas: number[]
+
   constructor(p: P5Instance, inputDim: number, units: number[]) {
     super()
     this.p = p
@@ -29,6 +35,19 @@ export class MyModel extends tf.Sequential {
     }
     this.id = Math.random()
     this.invalidateMemo()
+    // NN_l1, NN_l2, torso_length
+    // l_structure_inc, l_structure_dec, l_structure_transp,
+    // r_structure_inc, r_structure_dec, r_structure_transp,
+    // l_lengths, r_lengths, l_angles, r_angles
+    this.log_sigmas = [
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 0, 0, 0, 0, 0, 0, 0, 
+      0, 0, 0, 0, 0, 0, 0, 0
+    ]
   }
 
   getMemoizedWeights() {
@@ -99,12 +118,14 @@ export class MyModel extends tf.Sequential {
   }
 }
 
-export type envString = 'Cheetah' | 'Acrobot' | 'Mountain car'
+export type envString = 'Cheetah' | 'Acrobot' | 'Mountain car' | 'Graphoid'
 export const getModel = (p: P5Instance, env: envString): MyModel => {
   if (env === 'Cheetah') {
     return new MyModel(p, CheetahGame.obs_size, [16, CheetahGame.act_size])
   } else if (env === 'Acrobot') {
     return new MyModel(p, AcrobotGame.obs_size, [6, AcrobotGame.act_size])
+  } else if (env === 'Graphoid') {
+    return new MyModel(p, GraphoidGame.obs_size, [24, GraphoidGame.act_size])
   } else if (env === 'Mountain car') {
     return new MyModel(p, MountainCarGame.obs_size, [6, MountainCarGame.act_size])
   } else {

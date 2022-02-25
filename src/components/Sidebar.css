@@ -1,4 +1,4 @@
-.right-sidebar {
+.sidebar {
   padding-top: 3px;
   background-color: #222222;
   border: 1px solid #4D5057;
@@ -7,6 +7,20 @@
 .line-path {
   fill: none;
   stroke: rgb(53, 107, 177);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.line-path-r {
+  fill: none;
+  stroke: rgb(172, 33, 33);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.line-path-g {
+  fill: none;
+  stroke: rgb(55, 182, 43);
   stroke-width: 2.5;
   stroke-linejoin: round;
 }

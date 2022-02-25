@@ -2,48 +2,32 @@ import React, {useState} from "react"
 import "./App.css"
 import Navbar from "./Navbar"
 import { P5Wrapper } from "./P5Wrapper"
-import { tex } from "./questions"
+// import { tex } from "./questions"
+import LeftSidebar from "./LeftSidebar"
 import RightSidebar from "./RightSidebar"
-import sketch from "./sketch"
+import sketch, { initial_settings } from "./sketch"
 import { settingsType } from "./types"
 
-const mutationRateValues = [
-  0,
-  0.0001, 0.0002, 0.0005,
-  0.001, 0.002, 0.005,
-  0.01, 0.02, 0.05,
-  0.1, 0.2, 0.5,
-  1, 2, 5
+// const mutationRateValues = [
+//   0,
+//   0.0001, 0.0002, 0.0005,
+//   0.001, 0.002, 0.005,
+//   0.01, 0.02, 0.05,
+//   0.1, 0.2, 0.5,
+//   1, 2, 5
+// ]
+export const tauValues = [
+  0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20
 ]
 
+export const transform_settings = (settings: settingsType): settingsType => ({
+  ...settings, tau: tauValues[settings.tau], tau_0: tauValues[settings.tau_0],
+  animTimeCoef: initial_settings.animTimeCoef*100,
+  mutationProb: initial_settings.mutationProb*100
+})
+
 function App() {
-  const [settings, setSettings] = useState<settingsType>({
-    env: 'Cheetah',
-    deterministic: true,
-    numAgents: 25,
-    numAgentsToBe: 25,
-    epLen: 600,
-    animTimeCoef: 100,
-    mutationRate: 13,
-    mutationProb: 100,
-    mutateElites: false,
-    adaptMutationRate: false,
-    commaVariant: false,
-    loops: 1,
-    numElites: 1,
-    numSelects: 6,
-    numParents: 2,
-    tournamentSize: 4,
-    framesElites: 90,
-    framesPerPair: 40,
-    framesLosers: 90,
-    framesPerCrossover: 40,
-    framesMutation: 90,
-    framesPermutation: 90,
-    framesFadeIn: 20,
-    showNN: true,
-    advancedAnimation: false
-  })
+  const [settings, setSettings] = useState<settingsType>(initial_settings)
   const setSetting = (setting: keyof settingsType) => (value: any) => setSettings(settings => ({...settings, [setting]: value}))
   const setSettingCb = (setting: keyof settingsType) => (cb: (oldValue: any) => any) =>
     setSettings(settings => ({...settings, [setting]: cb(settings[setting])}))
@@ -53,11 +37,13 @@ function App() {
   const [gensSinceMutated, setGensSinceMutated] = useState([[], [], [], [], []] as number[][])
   const [mutationSuccess, setMutationSuccess] = useState([] as number[])
   const [crossoverSuccess, setCrossoverSuccess] = useState([] as number[])
+  const [sigmas, setSigmas] = useState([] as number[][][])
   const appendQuantiles = (nq: number[]) => setQuantiles(qs => qs.map((q, i) => [...q, nq[i]]))
   const appendGensSinceCreated = (nq: number[]) => setGensSinceCreated(qs => qs.map((q, i) => [...q, nq[i]]))
   const appendGensSinceMutated = (nq: number[]) => setGensSinceMutated(qs => qs.map((q, i) => [...q, nq[i]]))
   const appendMutationSuccess = (ms: number) => setMutationSuccess(mss => [...mss, ms])
   const appendCrossoverSuccess = (ms: number) => setCrossoverSuccess(mss => [...mss, ms])
+  const appendSigmas = (nsigmas: number[][]) => setSigmas(sigmass => [...sigmass, nsigmas])
   const [ageSinceMutation, setAgeSinceMutation] = useState(false)
 
   // const [anchorTarget, setAnchorTarger] = useState<HTMLElement | null>(null);
@@ -77,6 +63,7 @@ function App() {
     setGensSinceMutated([[], [], [], [], []])
     setMutationSuccess([])
     setCrossoverSuccess([])
+    setSigmas([[], [], [], [], []])
     setSetting('env')(env)
   }
   
@@ -95,14 +82,14 @@ function App() {
     </div>
     <Navbar
       setEnv={setEnvWithReset}
-      mutationRateValues={mutationRateValues}
+      tauValues={tauValues}
       settings={settings}
       setSetting={setSetting}
       setSettingCb={setSettingCb}
     />
     <div className="row">
       <div className="column left">
-        <h2>Materials on Evolution Strategies in Reinforcement Learning:</h2>
+        {/* <h2>Materials on Evolution Strategies in Reinforcement Learning:</h2>
         <a href='https://openai.com/blog/evolution-strategies/' className='link'>
           Evolution Strategies as a
           Scalable Alternative to
@@ -115,18 +102,22 @@ function App() {
         <h2>Additional demos:</h2>
         <a href='/correlation-matrix' className='link'>See the effect of changing the mutation distribution - demo using {tex`${`(1, \\lambda)`}-ES`}</a>
         <a href='/nes' className='link'>See how fitness shaping affects convergence and robustness - demo using NES</a>
-        <a href='/cma-es' className='link'>See self-adaptation at work - demo using CMA-ES</a>
+        <a href='/cma-es' className='link'>See self-adaptation at work - demo using CMA-ES</a> */}
+        <LeftSidebar
+          sigmas={sigmas}        
+        />
       </div>
       <div className="column middle">
         <P5Wrapper
           sketch={sketch}
-          settings={{...settings, mutationRate: mutationRateValues[settings.mutationRate]}}
+          settings={{...settings}}
 
           appendQuantiles={appendQuantiles}
           appendGensSinceCreated={appendGensSinceCreated}
           appendGensSinceMutated={appendGensSinceMutated}
           appendMutationSuccess={appendMutationSuccess}
           appendCrossoverSuccess={appendCrossoverSuccess}
+          appendSigmas={appendSigmas}
         />
       </div>
       <div className="column right">

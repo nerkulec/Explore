@@ -6,7 +6,7 @@ import {
   axisBottom,
   line
 } from 'd3'
-import './RightSidebar.css'
+import './Sidebar.css'
 
 export const useD3 = (
   render: any,
@@ -274,7 +274,7 @@ export default function RightSidebar({
   setAgeSinceMutation: (f: (b: boolean) => boolean) => void
 }) {
   return (
-    <div className='right-sidebar'>
+    <div className='sidebar'>
       <RewardChart quantiles={quantiles}/>
       <SuccessChart success={mutationSuccess} name="Mutation"/>
       <SuccessChart success={crossoverSuccess} name="Crossover"/>

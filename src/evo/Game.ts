@@ -1,7 +1,7 @@
 import { World, Body, Plane } from "p2"
 import { P5Instance } from "../components/P5Wrapper"
 import { Acrobot, AcrobotActionSpace, AcrobotObservationSpace,
-  Cheetah, CheetahActionSpace, CheetahObservationSpace, rotate, add, sub, v2 } from "./Agent"
+  Cheetah, CheetahActionSpace, CheetahObservationSpace, rotate, add, sub, v2, Graphoid, GraphoidActionSpace, GraphoidGenotype, GraphoidObservationSpace, max_n_limbs } from "./Agent"
 
 const limit = (value: number, max: number) => value < -max
   ? -max : value > max ? max : value
@@ -128,6 +128,127 @@ export class CheetahGame extends PhysicsGame {
 
   perturb(): void {
     this.cheetah.bodies.forEach(b => b.angularVelocity += rand()*0.1)
+  }
+}
+
+export class GraphoidGame extends PhysicsGame {
+  world: World
+  fixedTimestep: number = 1/60
+  ground: Body
+  graphoid: Graphoid
+  energy_cost: number = 0.002
+  static obs_size = 3+max_n_limbs*2
+  static act_size = max_n_limbs-1
+
+  constructor(p5: P5Instance, genotype: GraphoidGenotype) {
+    super(p5)
+    this.world = new World({
+      gravity : [0, -9*2],
+    })
+    this.world.defaultContactMaterial.friction = 8
+    this.ground = new Body({
+      mass: 0
+    })
+    const groundShape = new Plane({
+      position: [0, 0], collisionGroup: 1, collisionMask: 2
+    })
+    this.ground.addShape(groundShape)
+    this.world.addBody(this.ground)
+    this.graphoid = new Graphoid(p5, genotype)
+    this.graphoid.bodies.forEach(b => this.world.addBody(b))
+    this.graphoid.constraints.forEach(c => this.world.addConstraint(c))
+    this.graphoid.springs.forEach(s => this.world.addSpring(s))
+    this.reset()
+    // ;(this.world.solver as any).tolerance = 0.00001
+    ;(this.world.solver as any).iterations = 5
+  }
+
+  update(torque: GraphoidActionSpace) {
+    if (this.graphoid.dead) {
+      this.terminated = true
+      return
+    }
+    this.graphoid.applyTorque(torque)
+    this.world.step(this.fixedTimestep)
+    this.graphoid.bodies
+      .forEach(b => b.angularVelocity = limit(b.angularVelocity, 2))
+    this.graphoid.bodies.forEach(b =>
+      b.velocity = [limit(b.velocity[0], 8), limit(b.velocity[1], 8)]
+    )
+    this.graphoid.positionBodies()
+  }
+
+  draw(draw_background = true) {
+    const p = this.p5
+    const scale = 180
+    p.push()
+    p.fill(191)
+    p.noStroke()
+    if (draw_background)
+      p.rect(0, 0, p.width, p.height)
+    p.translate(p.width/2, p.height/2)
+    p.scale(1, -1)
+    p.fill(230)
+    p.rectMode(p.CORNER)
+    if (draw_background)
+      p.rect(-p.width/2, -scale, p.width, -scale)
+    p.scale(scale, scale)
+    p.translate(0, -1)
+    const graphoid_x = this.graphoid.torso.position[0]
+    p.translate(-graphoid_x, 0)
+    if (draw_background) {
+      p.fill(0)
+      const start = Math.floor(graphoid_x)+1
+      for (let i=0; i<p.width/100; i+=1) {
+        const x = -p.width/(2*scale)+i+start
+        let h = 0.2
+        if (Math.floor(x)%10 === 0)
+          h = 0.4
+        if (x-graphoid_x+0.1<p.width/(2*scale))
+          p.rect(x, 0, 0.1, -h)
+      }
+    }
+    this.graphoid.draw()
+    p.pop()
+  }
+
+  getObservation(): GraphoidObservationSpace {
+    return this.graphoid.getObservation()
+  }
+
+  getBaseReward() {
+    let reward = this.graphoid.torso.position[0]
+    if (isNaN(reward)) reward = -Infinity
+    if (this.graphoid.dead) reward = -Infinity
+    return reward
+  }
+
+  getEnergyCost() {
+    let cost = this.graphoid.energy_used*this.energy_cost
+    if (!isFinite(cost))
+      cost = Infinity
+    return cost
+  }
+
+  getReward() {
+    let reward = this.getBaseReward()
+    reward -= this.getEnergyCost()
+    if (!isFinite(reward))
+      reward = -Infinity
+    if (this.graphoid.max_vel_achieved > 15)
+      reward = -Infinity
+    return reward
+  }
+
+  reset(): GraphoidObservationSpace {
+    super.reset()
+    const observation = this.getObservation()
+    this.graphoid.reset()
+    return observation
+  }
+
+  perturb(): void {
+    this.graphoid.bodies.forEach(b => b.angularVelocity += rand()*0.1)
   }
 }
 
@@ -347,5 +468,8 @@ export class MountainCarGame implements Game {
 export const environments = {
   'Cheetah': CheetahGame,
   'Acrobot': AcrobotGame,
-  'Mountain car': MountainCarGame
+  'Mountain car': MountainCarGame,
+  'Graphoid': GraphoidGame
 } as const
+
+export type Environments = CheetahGame | AcrobotGame | MountainCarGame | GraphoidGame

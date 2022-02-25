@@ -1,44 +1,51 @@
-import { environments, Game, CheetahGame } from "../evo/Game"
-import {  getModel, MyModel } from "../evo/Model"
+import { environments, Game, GraphoidGame } from "../evo/Game"
+import {  adaptation_dimension, getModel, MyModel } from "../evo/Model"
 import { P5Instance } from "./P5Wrapper"
 import * as tf from '@tensorflow/tfjs'
 import { getEvolutionInfo, permute } from "../evo/Evolution"
 import { getAnimations } from "./animations"
 import { settingsType } from "./types"
+import { get_random_graphoid } from "../evo/Agent"
+import { transform_settings } from "./App"
 
 let DEBUG = false
 
-type ValueOf<T> = T[keyof T];
+type ValueOf<T> = T[keyof T]
+
+export const initial_settings: settingsType = {
+  env: 'Graphoid',
+  deterministic: true,
+  numAgents: 49,
+  numAgentsToBe: 49,
+  epLen: 400,//600,
+  animTimeCoef: 0, //1
+  mutationRate: 10,
+  mutationProb: 100,
+  tau: 5,
+  tau_0: 5,
+  kappa: 5,
+  mutateElites: false,
+  adaptMutationRate: true,
+  commaVariant: false,
+  loops: 1,
+  numElites: 1,
+  numSelects: 10,
+  numParents: 2,
+  tournamentSize: 4,
+  framesElites: 90,
+  framesPerPair: 30,
+  framesLosers: 90,
+  framesPerCrossover: 30,
+  framesMutation: 90,
+  framesPermutation: 90,
+  framesFadeIn: 20,
+  showNN: true,
+  advancedAnimation: false
+} as const
 
 const sketch = (p: P5Instance) => {
-  let Environment: ValueOf<typeof environments> = CheetahGame
-  const settings: settingsType = {
-    env: 'Cheetah',
-    deterministic: true,
-    numAgents: 25,
-    numAgentsToBe: 25,
-    epLen: 600,
-    animTimeCoef: 1,
-    mutationRate: 1,
-    mutationProb: 100,
-    mutateElites: false,
-    adaptMutationRate: false,
-    commaVariant: false,
-    loops: 1,
-    numElites: 1,
-    numSelects: 6,
-    numParents: 2,
-    tournamentSize: 4,
-    framesElites: 90,
-    framesPerPair: 30,
-    framesLosers: 90,
-    framesPerCrossover: 30,
-    framesMutation: 90,
-    framesPermutation: 90,
-    framesFadeIn: 20,
-    showNN: true,
-    advancedAnimation: false
-  }
+  let Environment: ValueOf<typeof environments> = GraphoidGame
+  const settings: settingsType = transform_settings(initial_settings)
   const games: Game[] = []
   const models: MyModel[] = []
   let gen_num = 0
@@ -54,16 +61,50 @@ const sketch = (p: P5Instance) => {
   let append_gens_since_mutated: (qs: number[]) => void
   let append_mutation_success: (s: number) => void
   let append_crossover_success: (s: number) => void
+  let append_sigmas: (sigmas: number[][]) => void
+
+  const reset_all = () => {
+    models.splice(0)
+    games.splice(0)
+    Environment = environments[settings.env]
+    for (let i=0; i<settings.numAgents; i++) {
+      const model = getModel(p, settings.env)
+      models.push(model)
+      if (settings.env === 'Graphoid') {
+        const genotype = get_random_graphoid()
+        const game = new GraphoidGame(p, genotype)
+        games.push(game)
+        model.graphoid_genotype = genotype
+      } else {
+        const game = new (Environment as any)(p)
+        games.push(game)
+      }
+    }
+  }
+
+  const reset_games = () => {
+    games.splice(0)
+    Environment = environments[settings.env]
+    if (settings.env === 'Graphoid') {
+      for (let i=0; i<settings.numAgents; i++) {
+        const model = models[i]
+        const genotype = model.graphoid_genotype
+        const game = new GraphoidGame(p, genotype!)
+        games.push(game)
+      }
+    } else {
+      for (let i=0; i<settings.numAgents; i++) {
+        const game = new (Environment as any)(p)
+        games.push(game)
+      }
+    }
+  }
 
   p.setup = () => {
     tf.setBackend('cpu')
     p.createCanvas(1080, 720, p.P2D)
     p.frameRate(60)
-    for (let i=0; i<settings.numAgents; i++) {
-      models.push(getModel(p, settings.env))
-      const game = new Environment(p)
-      games.push(game)
-    }
+    reset_all()
     const font = p.loadFont("OpenSans-Regular.ttf")
     p.textFont(font)
     p.textAlign(p.CENTER)
@@ -74,18 +115,13 @@ const sketch = (p: P5Instance) => {
   p.updateWithProps = ({
     settings: newSettings, appendQuantiles,
     appendGensSinceMutated, appendGensSinceCreated,
-    appendMutationSuccess, appendCrossoverSuccess}) => {
+    appendMutationSuccess, appendCrossoverSuccess,
+    appendSigmas
+  }) => {
     newSettings.numAgentsToBe = newSettings.numAgents
     if (newSettings.env !== settings.env) {
       settings.env = newSettings.env
-      Environment = environments[settings.env]
-      games.splice(0)
-      models.splice(0)
-      for (let i=0; i<settings.numAgents; i++) {
-        models.push(getModel(p, settings.env))
-        const game = new Environment(p)
-        games.push(game)
-      }
+      reset_all()
       current_animation = null
       animation_queue.splice(0)
       animation_queue.push(rolloutAnimation({prev_rank: []}))
@@ -94,9 +130,7 @@ const sketch = (p: P5Instance) => {
       settings.numAgentsToBe = newSettings.numAgents
     }
     delete newSettings.numAgents
-    Object.assign(settings, newSettings)
-    settings.animTimeCoef = newSettings.animTimeCoef/100
-    settings.mutationProb = newSettings.mutationProb/100
+    Object.assign(settings, transform_settings(newSettings))
 
     anims = getAnimations({p, settings, models, games})
     append_quantiles = appendQuantiles
@@ -104,6 +138,7 @@ const sketch = (p: P5Instance) => {
     append_gens_since_mutated = appendGensSinceMutated
     append_mutation_success = appendMutationSuccess
     append_crossover_success = appendCrossoverSuccess
+    append_sigmas = appendSigmas
   }
 
   const update = () => {
@@ -122,9 +157,15 @@ const sketch = (p: P5Instance) => {
     if (settings.numAgents !== settings.numAgentsToBe) {
       if (settings.numAgentsToBe > settings.numAgents) {
         for (let i=0; i<settings.numAgentsToBe-settings.numAgents; i++) {
-          models.push(getModel(p, settings.env))
-          const game = new Environment(p)
-          games.push(game)
+          const model = getModel(p, settings.env)
+          models.push(model)
+          if (settings.env === 'Graphoid') {
+            const genotype = get_random_graphoid()
+            model.graphoid_genotype = genotype
+            games.push(new GraphoidGame(p, genotype))
+          } else {
+            games.push(new (Environment as any)(p))
+          }
         }
       } else {
         models.splice(settings.numAgentsToBe)
@@ -142,6 +183,9 @@ const sketch = (p: P5Instance) => {
     const start = performance.now()
     if (prev_rank && prev_rank.length > 0) {
       permute(models, prev_rank)
+      if (settings.env === 'Graphoid') {
+        reset_games()
+      }
     }
     update_num_agents(settings)
     for (frame=0; frame<settings.epLen;) {
@@ -156,8 +200,19 @@ const sketch = (p: P5Instance) => {
         }
       }
       const id = games.map((_, i) => i)
-      // eslint-disable-next-line
-      for (const i of anims.gamesIter({winners: id, rank: id, rewards: games.map(g => g.getReward()), nn_scale: 0.3})) {}
+      if ((games[0] as any).getBaseReward) {
+        // eslint-disable-next-line
+        for (const i of anims.gamesIter({
+          winners: id, rank: id, rewards: games.map(g => g.getReward()),
+          base_rewards: (games as any).map((g: any) => g.getBaseReward()),
+          energy_costs: (games as any).map((g: any) => g.getEnergyCost()),
+          nn_scale: 0.3})) {}
+      } else {
+        // eslint-disable-next-line
+        for (const i of anims.gamesIter({
+          winners: id, rank: id, rewards: games.map(g => g.getReward()),
+          nn_scale: 0.3})) {}
+      }
       if (DEBUG) {
         p.text(`simrate: ${simrate.toFixed(1)}`, p.width*0.91, 54)
         p.text(`frame: ${frame}`, p.width*0.9, 75)
@@ -172,7 +227,7 @@ const sketch = (p: P5Instance) => {
 
     gen_num += 1
 
-    const info = getEvolutionInfo(games.map(game => game.getReward()), models, settings)
+    const info = getEvolutionInfo(games, models, settings)
     animation_queue.push(anims.permutationAnimation(info))
     animation_queue.push(anims.elitesAnimation(info))
     animation_queue.push(anims.tournamentSelectionAnimation(info))
@@ -183,9 +238,10 @@ const sketch = (p: P5Instance) => {
       prev_rank: info.rank, max_parents_rewards: info.max_parents_rewards, mutated_rewards: info.mutated_rewards
     }))
 
-    const { rewards, rank } = info
+    let { rewards, rank } = info
     const n = rewards.length
     const { floor } = Math
+    rewards = rewards.map(r => Math.max(-10, r))
     append_quantiles([
       rewards[rank[0]],
       rewards[rank[floor(n*0.25)]],
@@ -193,6 +249,21 @@ const sketch = (p: P5Instance) => {
       rewards[rank[floor(n*0.75)]],
       rewards[rank[n-1]]
     ])
+    const sigmass = models.map(m => m.log_sigmas)
+    const sigmas_quantiles = []
+    for (let i=0; i<adaptation_dimension; i++) {
+      const sigmas = sigmass.map(ss => ss[i]).sort((a, b) => b-a)
+      sigmas_quantiles.push([
+        sigmas[0],
+        sigmas[floor(n*0.25)],
+        sigmas[floor(n*0.5)],
+        sigmas[floor(n*0.75)],
+        sigmas[n-1]
+      ])
+    }
+    // sigmas_quantiles.shape = [adaptation_dimension, 5]
+    append_sigmas(sigmas_quantiles)
+
     if (max_parents_rewards) {
       const fraction = max_parents_rewards
         .reduce((count: number, [child_index, max_parents_reward]) => 

@@ -5,13 +5,13 @@ import { settingsType } from './types'
 
 
 export default function Navbar({
-  setEnv, settings, setSetting, setSettingCb, mutationRateValues
+  setEnv, settings, setSetting, setSettingCb, tauValues
 }: {
   setEnv: (env: string) => void
   settings: settingsType
   setSetting: (setting: keyof settingsType) => (value: any) => void
   setSettingCb: (setting: keyof settingsType) => (cb: (oldValue: any) => any) => void
-  mutationRateValues: number[]
+  tauValues: number[]
 }): ReactElement {
 
   return (
@@ -26,6 +26,7 @@ export default function Navbar({
                 <option>Cheetah</option>
                 <option>Acrobot</option>
                 <option>Mountain car</option>
+                <option>Graphoid</option>
               </select>
             </div>
             <Control min={20} max={600} step={20} value={settings.epLen} setValue={setSetting('epLen')}
@@ -41,8 +42,8 @@ export default function Navbar({
         </div>
       </div>
       <div className='navbar-column'>
-        <span className='column-header'>Algorithm: (μ/ρ{settings.commaVariant ? ', ' : '+'}λ)-ES,
-          μ={settings.numSelects}, ρ={settings.numParents}, λ={settings.numAgents}
+        <span className='column-header'>Algorithm: (μ{settings.commaVariant ? ', ' : '+'}λ, ρ, Κ)-ES,
+          μ={settings.numSelects}, λ={settings.numAgents}, ρ={settings.numParents}, Κ={settings.kappa}
           <div className='control-el tooltip'>
             <span className='tooltiptext'>ES Algorithm variant:<br/> (μ/ρ, λ)-ES vs  (μ/ρ+λ)-ES</span>
             <button className='button' onClick={() => setSettingCb('commaVariant')(b => !b)}>Switch variant</button>
@@ -72,9 +73,23 @@ export default function Navbar({
               label='Tournament size'
               tooltip='Number of agents taking part in a single tournament round'
             />
+            <Control min={2} max={10} value={settings.kappa} setValue={setSetting('kappa')}
+              label='Retirement (Κ)'
+              tooltip="Age of agent after which it doesn't participate in crossover"
+            />
           </div>
           <div className='column'>
-            <Control min={0} max={100} step={5} value={settings.mutationProb} setValue={setSetting('mutationProb')}
+            <Control min={0} max={tauValues.length-1} value={settings.tau_0} setValue={setSetting('tau_0')}
+              showFn={x=>tauValues[x].toString()}
+              label='Self-adaptation - global (τ₀)'
+              tooltip='Controls the general speed of self-adaptation'
+            />
+            <Control min={0} max={tauValues.length-1} value={settings.tau} setValue={setSetting('tau')}
+              showFn={x=>tauValues[x].toString()}
+              label='Self-adaptation - individual (τ)'
+              tooltip='Controls the speed of self-adaptation per dimension'
+            />
+            {/* <Control min={0} max={100} step={5} value={settings.mutationProb} setValue={setSetting('mutationProb')}
               label='Mutation probability' unit='%'
               tooltip='Probability of random mutation'
             />
@@ -82,12 +97,12 @@ export default function Navbar({
               showFn={x=>mutationRateValues[x].toString()}
               label='Mutation rate'
               tooltip='Standard deviation of random Gaussian variable added to parameters'
-            />
-            <div className='control-el tooltip'>
+            /> */}
+            {/* <div className='control-el tooltip'>
               <span className='tooltiptext'>Whether to adapt the mutation rate of individuals</span>
               <label>Adapt mutation rate</label>
               <input type='checkbox' onChange={() => setSettingCb('adaptMutationRate')(b => !b)} checked={settings.adaptMutationRate} />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

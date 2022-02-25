@@ -1,5 +1,6 @@
 import { P5Instance } from '../components/P5Wrapper'
 import { Capsule, Body, RotationalSpring, RevoluteConstraint, Circle, vec2 } from 'p2'
+import { correct_structure, randn, randomChoice } from './Evolution'
 
 export interface Agent {
   draw(): void
@@ -226,6 +227,364 @@ export class Cheetah extends PhysicsAgent {
       limbs_a[i].angularForce += torque[i]*this.torque_scale*this.torque_coefs[i]
       limbs_b[i].angularForce -= torque[i]*this.torque_scale*this.torque_coefs[i]
     }
+  }
+
+  draw() {
+    for (const body of this.bodies) {
+      drawBody(this.p5, body)
+    }
+  }
+}
+
+const subtree_size = (structure: number[], i: number): number => {
+  let n = 1
+  const initial_i = i
+  while (n>0) {
+    n += structure[i++]-1
+  }
+  return i-initial_i
+}
+
+const direct_descendants = <T>(structure: number[], elements: T[]): [T, T][] => {
+  if (structure.length !== elements.length) throw new Error("Invalid arguments")
+  const descendants: [T, T][] = []
+  for (let parent=0; parent<structure.length; parent++) {
+    const n = structure[parent]
+    let child = parent+1
+    for (let i=0; i<n; i++) {
+      descendants.push([elements[parent], elements[child]])
+      child += subtree_size(structure, child)
+    }
+  }
+  return descendants
+}
+
+export type GraphoidActionSpace = number[]
+export type GraphoidObservationSpace = number[]
+
+export const max_side_limbs = 8
+export const max_n_limbs = 2*max_side_limbs+1 // 8 for each side
+
+export type GraphoidGenotype = {
+  l_structure: number[]
+  r_structure: number[]
+  torso_length: number
+  l_lengths: number[]
+  r_lengths: number[]
+  l_angles: number[]
+  r_angles: number[]
+}
+
+const tau = 2*Math.PI
+
+export const get_random_graphoid = (): GraphoidGenotype => {
+  const torso_length = 3*Math.exp(randn()/3)
+  let l_structure: number[] = []
+  let r_structure: number[] = []
+  const l_lengths: number[] = []
+  const r_lengths: number[] = []
+  const l_angles: number[]= []
+  const r_angles: number[]= []
+
+  let l_n = Math.random()*3
+  l_structure.push(randomChoice([1, 2, 3]))
+  for (let i=0; i<l_n; i++) {
+    const a = randomChoice([0, 1, 2])
+    const b = randomChoice([0, 1, 2])
+    l_structure.push(Math.min(a, b))
+  }
+  l_structure = correct_structure(l_structure)
+  l_n = l_structure.length-1
+
+  let r_n = Math.random()*3
+  r_structure.push(randomChoice([1, 2, 3]))
+  for (let i=0; i<r_n; i++) {
+    const a = randomChoice([0, 1, 2])
+    const b = randomChoice([0, 1, 2])
+    r_structure.push(Math.min(a, b))
+  }
+  r_structure = correct_structure(r_structure)
+  r_n = r_structure.length-1
+
+  for (let i=0; i<l_n; i++) {
+    l_lengths.push(Math.exp(randn()/3))
+    l_angles.push(Math.PI*(2*Math.random()-1)/2)
+  }
+
+  for (let i=0; i<r_n; i++) {
+    r_lengths.push(Math.exp(randn()/3))
+    r_angles.push(Math.PI*(2*Math.random()-1)/2)
+  }
+
+  return {
+    l_structure, r_structure, torso_length,
+    l_lengths, r_lengths, l_angles, r_angles
+  }
+  // return {
+  //   l_structure: [1, 0],
+  //   r_structure: [1, 0],
+  //   torso_length: 1,
+  //   l_lengths: [1],
+  //   r_lengths: [1],
+  //   l_angles: [tau/4],
+  //   r_angles: [-tau/4]
+  // }
+}
+
+export class Graphoid extends PhysicsAgent {
+  bodies: Body[]
+  constraints: RevoluteConstraint[]
+  springs: RotationalSpring[]
+  torque_scale: number = 25
+  l_structure: number[]
+  r_structure: number[]
+  l_lengths: number[]
+  r_lengths: number[]
+  torso_length: number
+  l_angles: number[]
+  r_angles: number[]
+  starting_positions: v2[]
+  starting_angles: number[]
+  torso: Body
+  l_bodies: Body[]
+  r_bodies: Body[]
+  l_pairs: [Body, Body][]
+  r_pairs: [Body, Body][]
+  genotype: GraphoidGenotype
+  length_coef: number
+  energy_used: number
+  max_vel_achieved: number
+  dead: boolean
+
+  constructor(p5: P5Instance, genotype: GraphoidGenotype) {
+    super(p5)
+    this.genotype = genotype
+    const {
+      l_structure, r_structure,
+      torso_length, l_lengths, r_lengths,
+      l_angles, r_angles
+    } = genotype
+    const n_left = l_structure.length-1
+    const n_right = r_structure.length-1
+    if (l_lengths.length !== n_left) throw new Error("Invalid genotype")
+    if (r_lengths.length !== n_right) throw new Error("Invalid genotype")
+    if (l_angles.length !== n_left) throw new Error("Invalid genotype")
+    if (r_angles.length !== n_right) throw new Error("Invalid genotype")
+    this.dead = false
+    const length_coef = 0.8
+    this.length_coef = length_coef
+    const start_y = 1.50
+    const margin = 0.1
+    this.bodies = []
+    this.l_bodies = []
+    this.r_bodies = []
+    this.constraints = []
+    this.springs = []
+    this.torso_length = torso_length
+    this.l_lengths = l_lengths
+    this.r_lengths = r_lengths
+    this.l_angles = l_angles
+    this.r_angles = r_angles
+    this.l_structure = l_structure
+    this.r_structure = r_structure
+    this.energy_used = 0
+    this.max_vel_achieved = 0
+
+    const torso_shape = new Capsule({
+      length: length_coef*torso_length, radius: margin,
+      collisionGroup: 2, collisionMask: 1
+    })
+    this.torso = new Body({
+      mass: torso_length, position: [0, start_y]
+    })
+    this.torso.addShape(torso_shape)
+    
+    const l_shapes = l_lengths.map(l => new Capsule({
+      length: length_coef*l, radius:margin,
+      collisionGroup: 2, collisionMask: 1
+    }))
+    const r_shapes = r_lengths.map(l => new Capsule({
+      length: length_coef*l, radius:margin,
+      collisionGroup: 2, collisionMask: 1
+    }))
+    
+    const l_positions = l_shapes.map(s => -length_coef*torso_length/2-margin)
+    for (let i=0; i<n_left; i++) { // i - index of limb in l_lengths
+      const n = subtree_size(l_structure, i+1)
+      const l = l_lengths[i]*length_coef
+      for (let j=i+1; j<i+1+n; j++) {
+        l_positions[j] -= l
+      }
+      l_positions[i] -= l/2
+    }
+    for (let i=0; i<n_left; i++) {
+      const body = new Body({
+        mass: l_lengths[i], position: [l_positions[i], start_y]
+      })
+      body.addShape(l_shapes[i])
+      this.l_bodies.push(body)
+    }
+    
+    const r_positions = r_shapes.map(s => length_coef*torso_length/2+margin)
+    for (let i=0; i<n_right; i++) {
+      const n = subtree_size(r_structure, i+1)
+      const l = r_lengths[i]*length_coef
+      for (let j=i+1; j<i+1+n; j++) {
+        r_positions[j] += l
+      }
+      r_positions[i] += l/2
+    }
+    for (let i=0; i<n_right; i++) {
+      const body = new Body({
+        mass: r_lengths[i], position: [r_positions[i], start_y]
+      })
+      body.addShape(r_shapes[i])
+      this.r_bodies.push(body)
+    }
+    this.l_pairs = direct_descendants(l_structure, [this.torso, ...this.l_bodies])
+    this.r_pairs = direct_descendants(r_structure, [this.torso, ...this.r_bodies])
+    // springs
+    const stiffness = 150
+    const damping = 0.5
+    // const l_angles_descendant_order = direct_descendants(l_structure, [0, ...l_angles])
+    //   .map(([l, r]) => r)
+    // const r_angles_descendant_order = direct_descendants(r_structure, [0, ...r_angles])
+    //   .map(([l, r]) => r)
+
+    this.l_pairs.forEach(([l, r], i) => this.springs.push(new RotationalSpring(
+      l, r, {restAngle: l_angles[i], stiffness, damping} // angles not in order
+    )))
+    this.r_pairs.forEach(([l, r], i) => this.springs.push(new RotationalSpring(
+      l, r, {restAngle: r_angles[i], stiffness, damping}
+    )))
+    this.l_pairs.forEach(([l, r]) => this.constraints.push(
+      new RevoluteConstraint(l, r, {
+        localPivotA: [-l.mass*length_coef/2, 0], localPivotB: [r.mass*length_coef/2, 0], collideConnected: false
+      }
+    )))
+    this.r_pairs.forEach(([l, r]) => this.constraints.push(
+      new RevoluteConstraint(l, r, {
+        localPivotA: [l.mass*length_coef/2, 0], localPivotB: [-r.mass*length_coef/2, 0], collideConnected: false
+      }
+    )))
+    this.bodies = [this.torso, ...this.l_bodies, ...this.r_bodies]
+    // this.setAngles()
+    this.positionBodies()
+    this.starting_positions = this.bodies.map(body => [...body.position as v2])
+    this.starting_angles = this.bodies.map(body => body.angle)
+  }
+
+  setAngles() {
+    const l_summed_angles = this.l_angles.map(s => 0)
+    for (let i=0; i<this.l_angles.length; i++) {
+      const n = subtree_size(this.l_structure, i+1)
+      const a = this.l_angles[i]
+      for (let j=i+1; j<i+1+n; j++) {
+        l_summed_angles[j] += a
+      }
+    }
+    const r_summed_angles = this.r_angles.map(s => 0)
+    for (let i=0; i<this.r_angles.length; i++) {
+      const n = subtree_size(this.r_structure, i+1)
+      const a = this.r_angles[i]
+      for (let j=i+1; j<i+1+n; j++) {
+        r_summed_angles[j] += a
+      }
+    }
+    this.l_bodies.forEach((b, i) => b.angle = l_summed_angles[i])
+    this.r_bodies.forEach((b, i) => b.angle = r_summed_angles[i])
+    this.l_bodies.forEach((b, i) => b.previousAngle = l_summed_angles[i])
+    this.r_bodies.forEach((b, i) => b.previousAngle = r_summed_angles[i])
+  }
+
+  positionBodies() {
+    const lc = this.length_coef
+    const offset = vec2.create()
+    this.r_pairs.forEach(([l, r]) => {
+      const l_pivot = [l.mass*lc/2, 0]
+      vec2.rotate(l_pivot, l_pivot, l.angle)
+      vec2.add(l_pivot, l_pivot, l.position)
+      const r_pivot = [-r.mass*lc/2, 0]
+      vec2.rotate(r_pivot, r_pivot, r.angle)
+      vec2.add(r_pivot, r_pivot, r.position)
+      const diff = vec2.create()
+      vec2.negate(r_pivot, r_pivot)
+      vec2.add(diff, l_pivot, r_pivot)
+      vec2.add(r.position, r.position, diff)
+      vec2.scale(diff, diff, r.mass)
+      vec2.add(offset, offset, diff)
+    })
+    this.l_pairs.forEach(([l, r]) => {
+      const l_pivot = [-l.mass*lc/2, 0]
+      vec2.rotate(l_pivot, l_pivot, l.angle)
+      vec2.add(l_pivot, l_pivot, l.position)
+      const r_pivot = [r.mass*lc/2, 0]
+      vec2.rotate(r_pivot, r_pivot, r.angle)
+      vec2.add(r_pivot, r_pivot, r.position)
+      const diff = vec2.create()
+      vec2.negate(r_pivot, r_pivot)
+      vec2.add(diff, l_pivot, r_pivot)
+      vec2.add(r.position, r.position, diff)
+      vec2.scale(diff, diff, r.mass)
+      vec2.add(offset, offset, diff)
+    })
+    // vec2.negate(offset, offset)
+    // vec2.scale(offset, offset, 1/this.bodies.reduce((s, b) => s+b.mass, 0))
+    // this.bodies.forEach(b => vec2.add(b.position, b.position, offset))
+  }
+
+  reset() {
+    // leg placement
+    for (let i=0; i<this.bodies.length; i++) {
+      const body = this.bodies[i]
+      body.position = [...this.starting_positions[i]]
+      body.previousPosition = [...this.starting_positions[i]]
+      body.angle = this.starting_angles[i]
+      body.previousAngle = 0
+      body.velocity = [0, 0]
+      body.angularVelocity = 0
+      body.vlambda = vec2.create()
+      body.wlambda = 0 as any
+      body.force = vec2.create()
+      body.angularForce = 0
+    }
+    this.energy_used = 0
+    this.max_vel_achieved = 0
+    this.dead = false
+  }
+
+  getObservation(): GraphoidObservationSpace {
+    const obs: number[] = []
+    const zeros_left = max_side_limbs-this.l_bodies.length
+    const zeros_right = max_side_limbs-this.r_bodies.length
+    obs.push(this.torso.position[1], ...this.torso.velocity) //3 elements
+    obs.push(this.torso.angle, this.torso.angularVelocity) //2 elements
+    obs.push(...this.l_bodies.map(b => b.angle))
+    for (let i=0; i<zeros_left; i++) obs.push(0)
+    obs.push(...this.l_bodies.map(b => b.angularVelocity))
+    for (let i=0; i<zeros_left; i++) obs.push(0)
+    obs.push(...this.r_bodies.map(b => b.angle))
+    for (let i=0; i<zeros_right; i++) obs.push(0)
+    obs.push(...this.r_bodies.map(b => b.angularVelocity))
+    for (let i=0; i<zeros_right; i++) obs.push(0)
+    return obs
+  }
+
+  applyTorque(torque: GraphoidActionSpace) {
+    // Attention! torque depends on mass of FIRST limb
+    for (const [i, [limb_a, limb_b]] of this.l_pairs.entries()) {
+      limb_a.angularForce += torque[i]*limb_a.mass*this.torque_scale
+      limb_b.angularForce -= torque[i]*limb_a.mass*this.torque_scale
+    }
+    for (const [i, [limb_a, limb_b]] of this.r_pairs.entries()) {
+      limb_a.angularForce += torque[i+8]*limb_a.mass*this.torque_scale
+      limb_b.angularForce -= torque[i+8]*limb_a.mass*this.torque_scale
+    }
+    // this.energy_used += [...this.l_pairs, ...this.r_pairs]
+    //   .reduce((s, [l, r]) => s+(l.angularVelocity-r.angularVelocity)**2, 0)
+    this.energy_used += this.bodies.reduce((s, b) => s+(b.angle-b.previousAngle)**2, 0)
+    this.max_vel_achieved = Math.max(this.max_vel_achieved, vec2.length(this.torso.velocity))
+    if (this.bodies.some(b => Math.abs(b.angle-b.previousAngle) > tau/3)) this.dead = true
   }
 
   draw() {

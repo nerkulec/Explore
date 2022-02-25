@@ -25,8 +25,10 @@ export const getAnimations = ({p, models, games, settings}:
     p.scale(scale, scale)
   }
 
-  function* gamesIter({winners, rank, rewards, draw_game=true, nn_scale=0}: 
-    {winners: number[], rank?: number[], rewards?: number[], draw_game?: boolean, nn_scale?: number}) {
+  function* gamesIter({winners, rank, rewards, base_rewards, energy_costs, draw_game=true, nn_scale=0}: {
+    winners: number[], rank?: number[], rewards?: number[], draw_game?: boolean,
+    nn_scale?: number, base_rewards?: number[], energy_costs?: number[]
+  }) {
     const w = Math.ceil(Math.sqrt(settings.numAgents))
     for (let y=0; y<w; y++) {
       for (let x=0; x<w; x++) {
@@ -48,7 +50,14 @@ export const getAnimations = ({p, models, games, settings}:
           p.pop()
         }
         if (rewards) {
-          if (winners?.includes(i)) {
+          if (base_rewards && energy_costs) {
+            const br = base_rewards[i]
+            const ec = energy_costs[i]
+            p.textSize(120)
+            p.text(br.toFixed(2), p.width*0.4, 130)
+            p.text('-', p.width*0.6, 130)
+            p.text(ec.toFixed(2), p.width*0.8, 130)
+          } else if (winners?.includes(i)) {
             const r = rewards[i]
             p.textSize(120)
             p.text(r.toFixed(2), p.width/2, 130)
