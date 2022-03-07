@@ -18,7 +18,7 @@ export const initial_settings: settingsType = {
   numAgents: 49,
   numAgentsToBe: 49,
   epLen: 400,//600,
-  animTimeCoef: 0, //1
+  animTimeCoef: 1, //1
   mutationRate: 10,
   mutationProb: 100,
   tau: 5,
