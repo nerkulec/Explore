@@ -22,8 +22,7 @@ export const tauValues = [
 
 export const transform_settings = (settings: settingsType): settingsType => ({
   ...settings, tau: tauValues[settings.tau], tau_0: tauValues[settings.tau_0],
-  animTimeCoef: initial_settings.animTimeCoef*100,
-  mutationProb: initial_settings.mutationProb*100
+  animTimeCoef: settings.animTimeCoef/100.0
 })
 
 function App() {

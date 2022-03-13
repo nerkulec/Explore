@@ -23,9 +23,9 @@ export default function Navbar({
             <div className='control-el column'>
               <label>Choose RL environment</label>
               <select value={settings.env} onChange={e => setEnv(e.target.value)}>
-                <option>Cheetah</option>
+                {/* <option>Cheetah</option>
                 <option>Acrobot</option>
-                <option>Mountain car</option>
+                <option>Mountain car</option> */}
                 <option>Graphoid</option>
               </select>
             </div>
@@ -55,13 +55,13 @@ export default function Navbar({
               label='Population size (λ)'
               tooltip='Number of agents in the population'
             />
+            <Control min={0} max={settings.numSelects} value={settings.numElites} setValue={setSetting('numElites')}
+              label='Number of elites'
+              tooltip='Number of agents that are guaranteed to survive intact'
+            />
             <Control min={Math.max(settings.numElites, 1)} max={settings.numAgents-1} value={settings.numSelects} setValue={setSetting('numSelects')}
               label='Number of survivors (μ)'
               tooltip='Number of agents that survive the elimination phase and can pass on their genes'
-            />
-            <Control min={0} max={settings.numSelects} value={settings.numElites} setValue={setSetting('numElites')}
-              label='Elites'
-              tooltip='Number of agents that are guaranteed to survive intact'
             />
           </div>
           <div className='column'>

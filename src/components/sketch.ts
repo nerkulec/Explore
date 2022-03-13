@@ -18,7 +18,7 @@ export const initial_settings: settingsType = {
   numAgents: 49,
   numAgentsToBe: 49,
   epLen: 400,//600,
-  animTimeCoef: 1, //1
+  animTimeCoef: 100, //100
   mutationRate: 10,
   mutationProb: 100,
   tau: 5,
@@ -130,7 +130,8 @@ const sketch = (p: P5Instance) => {
       settings.numAgentsToBe = newSettings.numAgents
     }
     delete newSettings.numAgents
-    Object.assign(settings, transform_settings(newSettings))
+    const transformed_settings = transform_settings(newSettings)
+    Object.assign(settings, transformed_settings)
 
     anims = getAnimations({p, settings, models, games})
     append_quantiles = appendQuantiles
@@ -206,7 +207,7 @@ const sketch = (p: P5Instance) => {
           winners: id, rank: id, rewards: games.map(g => g.getReward()),
           base_rewards: (games as any).map((g: any) => g.getBaseReward()),
           energy_costs: (games as any).map((g: any) => g.getEnergyCost()),
-          nn_scale: 0.3})) {}
+          nn_scale: 0.3, highlight_best: true})) {}
       } else {
         // eslint-disable-next-line
         for (const i of anims.gamesIter({
@@ -306,6 +307,7 @@ const sketch = (p: P5Instance) => {
     if ((p as any)._renderer.drawingContext instanceof WebGLRenderingContext) {
       p.translate(-p.width/2, -p.height/2)
     }
+    p.translate(6, 6)
     let drawn = false
     while (!drawn) {
       if (current_animation) {
