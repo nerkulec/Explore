@@ -1,5 +1,7 @@
 ### Explore the evolution!
 
-This is the repository for [explo.netlify.app/](explo.netlify.app/) - an interactive webapp explaining evolutionary algorithms in a visual way
+This is the repository for [Evolution Playground](https://explo.netlify.app) - an interactive webapp providing a visual demonstration of Evolutionary Strategies algorithms solving a Reinforcement Learning task in a physically simulated environment.
+
+Both the "Graphoid" agent structure and its policy/behavior are being optimized.
 
 ![explo.netlify.app/ screenshot](evolutionplayground.png)
