@@ -130,6 +130,21 @@ export default function Navbar({
                 <input type='checkbox' onChange={() => setSettingCb('advancedAnimation')(b => !b)} checked={settings.advancedAnimation}/>
               </div>
             </div>
+            <div className='row'>
+              <div className='control-el tooltip'>
+                <span className='tooltiptext'>Speed up calculations and leave the simulation running for ~5 minutes</span>
+                <button className='button' onClick={() => {
+                  setSetting('animTimeCoef')(10)
+                  setSetting('loops')(20)
+                  }}>Go fast</button>
+                </div>  <div className='control-el tooltip'>
+                <span className='tooltiptext'>Slow down to observe evolution results</span>
+                <button className='button' onClick={() => {
+                  setSetting('animTimeCoef')(50)
+                  setSetting('loops')(1)
+                  }}>Go slow</button>
+                </div>
+              </div>
           </div>
           <div className='column'>
             {settings.advancedAnimation ? <div className='column'>
